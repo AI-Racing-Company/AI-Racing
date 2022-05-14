@@ -76,11 +76,12 @@ class MyGame(arcade.Window):
 
         self.x = 0
         self.y = 0
-        self.oldx = 0
-        self.oldy = 0
-        self.x_list = [0,0]
-        self.xy_list = list()
-        self.click = 0
+        self.temp_list = [0,0]
+        self.xy0_list = list()
+        self.xy1_list = list()
+        self.click0 = 0
+        self.click1 = 0
+        self.linie = 0
 
         self.player1_sprite = None
         self.wall_sprite = None
@@ -141,24 +142,59 @@ class MyGame(arcade.Window):
        #             self.street_list.append(self.street_sprite)
 
     def on_mouse_press(self, x, y, button, key_modifiers):
+        if self.linie == 1:
+            self.x = x
+            self.y = y
+            self.temp_list[0] = self.x
+            self.temp_list[1] = self.y
+            self.xy1_list.append(list(self.temp_list))
+            self.click1 += 1
+            kathete1 = self.xy1_list[self.click1-1][0]-self.xy1_list[0][0]
+            kathete2 = self.xy1_list[self.click1-1][1]-self.xy1_list[0][1]
+            hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
+            if hypotenuse < 50 and self.click1 > 1:
+                self.temp_list[0] = self.xy1_list[0][0]
+                self.temp_list[1] = self.xy1_list[0][1]
+                self.xy1_list.append(list(self.temp_list))
+                self.linie += 1
 
-        self.x = x
-        self.y = y
-        self.x_list[0] = self.x
-        self.x_list[1] = self.y
-        self.xy_list.append(list(self.x_list))
-        self.click += 1
 
+        if self.linie == 0:
+            self.x = x
+            self.y = y
+            self.temp_list[0] = self.x
+            self.temp_list[1] = self.y
+            self.xy0_list.append(list(self.temp_list))
+            self.click0 += 1
+            kathete1 = self.xy0_list[self.click0-1][0]-self.xy0_list[0][0]
+            kathete2 = self.xy0_list[self.click0-1][1]-self.xy0_list[0][1]
+            hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
+            if hypotenuse < 50 and self.click0 > 1:
+                self.temp_list[0] = self.xy0_list[0][0]
+                self.temp_list[1] = self.xy0_list[0][1]
+                self.xy0_list.append(list(self.temp_list))
+                self.linie += 1
 
 
 
     def on_draw(self):
         arcade.start_render()
 
-        if self.click > 1:
-            arcade.draw_line_strip(self.xy_list, arcade.color.BLACK, 10)
-        else:
-            arcade.draw_point(self.x, self.y, arcade.color.BLACK, 10)
+        if self.click0 > 1:
+            arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 10)
+
+        if self.click0 >= 1:
+            arcade.draw_point(self.xy0_list[0][0], self.xy0_list[0][1], arcade.color.BLACK, 10)
+
+        if self.click1 > 1:
+            arcade.draw_line_strip(self.xy1_list, arcade.color.BLACK, 10)
+
+        if self.click1 >= 1:
+            arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 10)
+
+
+
+
         #self.street_list.draw()
         #self.wall_list.draw()
         self.player1_list.draw()
@@ -206,9 +242,9 @@ class MyGame(arcade.Window):
             self.player1_sprite.speed = -MIN_SPEED
         self.player1_list.update()
 
-
-
-
+        #any_collisions = arcade.check_for_collision_with_list(self.player1_sprite,self.xy1_list)
+        #if len(any_collisions) > 0:
+        #    print("dead")
 
     def on_key_press(self, key, modifiers):
 
