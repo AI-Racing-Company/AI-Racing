@@ -25,6 +25,13 @@ ANGLE_SPEED = 2
 FRICTION = 0.005
 
 
+class Wall(arcade.Sprite):
+
+    def __init__(self, image, scale):
+
+        super().__init__(image, scale)
+
+
 class Player1(arcade.Sprite):
 
     def __init__(self, image, scale):
@@ -32,6 +39,7 @@ class Player1(arcade.Sprite):
         super().__init__(image, scale)
 
         self.speed = 0
+        self.angle = 90
 
     def update(self):
         self.center_x += self.change_x
@@ -64,12 +72,11 @@ class MyGame(arcade.Window):
 
         self.player1_list = None
         self.wall_list = None
+        self.street_list = None
 
         self.player1_sprite = None
-        self.wall_sprite0 = None
-        self.wall_sprite1 = None
-        self.wall_sprite2 = None
-        self.wall_sprite3 = None
+        self.wall_sprite = None
+        self.street_sprite = None
 
         self.p1_health = None
 
@@ -88,30 +95,44 @@ class MyGame(arcade.Window):
 
         self.player1_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
+        self.street_list = arcade.SpriteList()
 
         self.p1_health = P1_MAX_HEALTH
-
-        self.wall_sprite0 = Player1("Strecken_Teil_1.png", SPRITE_SCALING_PLAYERS)
-        self.wall_sprite0.center_x = SCREEN_WIDTH / 1.12
-        self.wall_sprite0.center_y = SCREEN_HEIGHT / 2
-        self.wall_list.append(self.wall_sprite0)
-        self.wall_sprite1 = Player1("Strecken_Teil_1.png", SPRITE_SCALING_PLAYERS)
-        self.wall_sprite1.center_x = SCREEN_WIDTH / 10
-        self.wall_sprite1.center_y = SCREEN_HEIGHT / 2
-        self.wall_list.append(self.wall_sprite1)
-        self.wall_sprite2 = Player1("Strecken_Teil_2.png", SPRITE_SCALING_PLAYERS)
-        self.wall_sprite2.center_x = SCREEN_WIDTH / 2
-        self.wall_sprite2.center_y = SCREEN_HEIGHT / 1.1
-        self.wall_list.append(self.wall_sprite2)
-        self.wall_sprite3 = Player1("Strecken_Teil_2.png", SPRITE_SCALING_PLAYERS)
-        self.wall_sprite3.center_x = SCREEN_WIDTH / 2
-        self.wall_sprite3.center_y = SCREEN_HEIGHT / 7
-        self.wall_list.append(self.wall_sprite3)
+        strecke = [11,12,13,14,15,16,17,18,21,28,31,38,41,48,51,58,61,68,71,78,81,88,91,98,101,108,111,118,121,128,131,138,141,148,151,158,161,162,163,164,165,166,167,168]
 
         self.player1_sprite = Player1("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS)
-        self.player1_sprite.center_x = SCREEN_WIDTH/2
-        self.player1_sprite.center_y = 50
+        self.player1_sprite.center_x = SCREEN_WIDTH / 2
+        self.player1_sprite.center_y = 140
         self.player1_list.append(self.player1_sprite)
+
+        count = 0
+        count1 = 0
+
+        for x in range(0, 18):
+            for y in range(0, 10):
+                if count1 == len(strecke) or not count == strecke[count1]:
+                    self.wall_sprite = Wall("Barriere.png", SPRITE_SCALING_PLAYERS)
+                    self.wall_sprite.center_x = 50 + x * 100
+                    self.wall_sprite.center_y = 950 - y * 100
+                    self.wall_list.append(self.wall_sprite)
+
+                else:
+
+                    count1 += 1
+                count += 1
+
+        for z in range(0, len(strecke)):
+            for x in range(0, 18):
+                for y in range(0, 10):
+                    y = strecke[z] % 10
+                    x = int(strecke[z] / 10)
+                    self.street_sprite = Wall("Street.png", SPRITE_SCALING_PLAYERS)
+                    self.street_sprite.center_x = 50 + x * 100
+                    self.street_sprite.center_y = 950 - y * 100
+                    self.street_list.append(self.street_sprite)
+
+
+
 
 
 
@@ -119,27 +140,28 @@ class MyGame(arcade.Window):
         arcade.start_render()
 
         arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
-        arcade.draw_text(f"Speed: {self.player1_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
 
-        arcade.draw_text(f"Angel_Speed: {self.player1_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
 
+        self.street_list.draw()
         self.wall_list.draw()
         self.player1_list.draw()
+        #count1 = 0
+        """Da um zu wissen welche Barriere wo ist"""
+        #for x in range(0, 18):
+        #    for y in range(0, 10):
+        #        arcade.draw_text(count1,  50 + x*100,  950 - y*100, arcade.color.WHITE)
+        #        count1 += 1
+
+        arcade.draw_text(f"Speed: {self.player1_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
+        arcade.draw_text(f"Angel_Speed: {self.player1_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
 
     def on_update(self, delta_time):
-        if self.player1_sprite.collides_with_sprite(self.wall_sprite0) == False and self.player1_sprite.collides_with_sprite(self.wall_sprite1) == False and self.player1_sprite.collides_with_sprite(self.wall_sprite2) == False and self.player1_sprite.collides_with_sprite(self.wall_sprite3) == False:
+
+        if self.player1_sprite.collides_with_list(self.wall_list):
             self.player1_sprite.center_x = 500
-            self.player1_sprite.center_y = 110
+            self.player1_sprite.center_y = 150
             self.player1_sprite.speed = 0
-            self.player1_sprite.angle= 90
-
-
-        if self.player1_sprite.speed > FRICTION:
-            self.player1_sprite.speed -= FRICTION
-        elif self.player1_sprite.speed < -FRICTION:
-            self.player1_sprite.speed += FRICTION
-        else:
-            self.player1_sprite.speed = 0
+            self.player1_sprite.angle = 90
 
         if self.player1_sprite.speed > FRICTION:
             self.player1_sprite.speed -= FRICTION
@@ -153,9 +175,9 @@ class MyGame(arcade.Window):
         elif self.S and not self.W:
             self.player1_sprite.speed += -DECELERATION
         if self.A and not self.D:
-            self.player1_sprite.change_angle = 0.256 *(self.player1_sprite.speed-0.75)**(3)-1.344 *(self.player1_sprite.speed-0.75)**(2)+1.152 *(self.player1_sprite.speed-0.75)+1.728
+            self.player1_sprite.change_angle = 0.256 * (self.player1_sprite.speed-0.75)**3-1.344 * (self.player1_sprite.speed-0.75)**2 + 1.152 * self.player1_sprite.speed-0.75+1.728
         elif self.D and not self.A:
-            self.player1_sprite.change_angle = -(0.256 *(self.player1_sprite.speed-0.75)**(3)-1.344 *(self.player1_sprite.speed-0.75)**(2)+1.152 *(self.player1_sprite.speed-0.75)+1.728)
+            self.player1_sprite.change_angle = -(0.256 * (self.player1_sprite.speed-0.75)**3 - 1.344 * (self.player1_sprite.speed-0.75)**2+1.152 * self.player1_sprite.speed-0.75+1.728)
 
         if self.player1_sprite.speed > MAX_SPEED:
             self.player1_sprite.speed = MAX_SPEED
@@ -176,9 +198,6 @@ class MyGame(arcade.Window):
         elif key == arcade.key.D:
             self.D = True
 
-
-
-
     def on_key_release(self, key, modifiers):
 
         if key == arcade.key.W:
@@ -194,7 +213,6 @@ class MyGame(arcade.Window):
             self.player1_sprite.change_angle = 0
         elif key == arcade.key.D:
             self.player1_sprite.change_angle = 0
-
 
 
 def main():
