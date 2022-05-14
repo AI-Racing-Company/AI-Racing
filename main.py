@@ -74,6 +74,14 @@ class MyGame(arcade.Window):
         self.wall_list = None
         self.street_list = None
 
+        self.x = 0
+        self.y = 0
+        self.oldx = 0
+        self.oldy = 0
+        self.x_list = [0,0]
+        self.xy_list = list()
+        self.click = 0
+
         self.player1_sprite = None
         self.wall_sprite = None
         self.street_sprite = None
@@ -97,6 +105,7 @@ class MyGame(arcade.Window):
         self.wall_list = arcade.SpriteList()
         self.street_list = arcade.SpriteList()
 
+
         self.p1_health = P1_MAX_HEALTH
         strecke = [11,12,13,14,15,16,17,18,21,28,31,38,41,48,51,58,61,68,71,78,81,88,91,98,101,108,111,118,121,128,131,138,141,148,151,158,161,162,163,164,165,166,167,168]
 
@@ -108,30 +117,37 @@ class MyGame(arcade.Window):
         count = 0
         count1 = 0
 
-        for x in range(0, 18):
-            for y in range(0, 10):
-                if count1 == len(strecke) or not count == strecke[count1]:
-                    self.wall_sprite = Wall("Barriere.png", SPRITE_SCALING_PLAYERS)
-                    self.wall_sprite.center_x = 50 + x * 100
-                    self.wall_sprite.center_y = 950 - y * 100
-                    self.wall_list.append(self.wall_sprite)
+       # for x in range(0, 18):
+       #     for y in range(0, 10):
+       #         if count1 == len(strecke) or not count == strecke[count1]:
+       #             self.wall_sprite = Wall("Barriere.png", SPRITE_SCALING_PLAYERS)
+       #             self.wall_sprite.center_x = 50 + x * 100
+       #             self.wall_sprite.center_y = 950 - y * 100
+       #             self.wall_list.append(self.wall_sprite)
+       #
+       #         else:
+       #
+       #             count1 += 1
+       #         count += 1
+       #
+       # for z in range(0, len(strecke)):
+       #     for x in range(0, 18):
+       #         for y in range(0, 10):
+       #             y = strecke[z] % 10
+       #             x = int(strecke[z] / 10)
+       #             self.street_sprite = Wall("Street.png", SPRITE_SCALING_PLAYERS)
+       #             self.street_sprite.center_x = 50 + x * 100
+       #             self.street_sprite.center_y = 950 - y * 100
+       #             self.street_list.append(self.street_sprite)
 
-                else:
+    def on_mouse_press(self, x, y, button, key_modifiers):
 
-                    count1 += 1
-                count += 1
-
-        for z in range(0, len(strecke)):
-            for x in range(0, 18):
-                for y in range(0, 10):
-                    y = strecke[z] % 10
-                    x = int(strecke[z] / 10)
-                    self.street_sprite = Wall("Street.png", SPRITE_SCALING_PLAYERS)
-                    self.street_sprite.center_x = 50 + x * 100
-                    self.street_sprite.center_y = 950 - y * 100
-                    self.street_list.append(self.street_sprite)
-
-
+        self.x = x
+        self.y = y
+        self.x_list[0] = self.x
+        self.x_list[1] = self.y
+        self.xy_list.append(list(self.x_list))
+        self.click += 1
 
 
 
@@ -139,11 +155,12 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
 
-        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
-
-
-        self.street_list.draw()
-        self.wall_list.draw()
+        if self.click > 1:
+            arcade.draw_line_strip(self.xy_list, arcade.color.BLACK, 10)
+        else:
+            arcade.draw_point(self.x, self.y, arcade.color.BLACK, 10)
+        #self.street_list.draw()
+        #self.wall_list.draw()
         self.player1_list.draw()
         #count1 = 0
         """Da um zu wissen welche Barriere wo ist"""
@@ -152,9 +169,11 @@ class MyGame(arcade.Window):
         #        arcade.draw_text(count1,  50 + x*100,  950 - y*100, arcade.color.WHITE)
         #        count1 += 1
 
+
+
         arcade.draw_text(f"Speed: {self.player1_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
         arcade.draw_text(f"Angel_Speed: {self.player1_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
-
+        arcade.finish_render()
     def on_update(self, delta_time):
 
         if self.player1_sprite.collides_with_list(self.wall_list):
@@ -186,6 +205,10 @@ class MyGame(arcade.Window):
         elif self.player1_sprite.speed < -MIN_SPEED:
             self.player1_sprite.speed = -MIN_SPEED
         self.player1_list.update()
+
+
+
+
 
     def on_key_press(self, key, modifiers):
 
