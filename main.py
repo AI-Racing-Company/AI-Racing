@@ -10,8 +10,8 @@ import math
 DIR = path.dirname(path.abspath(__file__))
 
 SPRITE_SCALING_PLAYERS = 1 #25 * 69 px
-carDiag = 36.69 #len of diagonal
-carAngularAdd = [20,-20, -160,160] # angles to add for calculation
+carDiag = 35.41 #len of diagonal
+carAngularAdd = [19,161,-161,-19]# angles to add for calculation
 
 P1_MAX_HEALTH = 1
 
@@ -74,6 +74,8 @@ class Player1(arcade.Sprite):
 
         self.angle += self.change_angle
 
+        self.angle = self.angle % 360
+
         self.center_x += -self.speed * math.sin(angle_rad)
         self.center_y += self.speed * math.cos(angle_rad)
 
@@ -89,6 +91,7 @@ class MyGame(arcade.Window):
         self.wall_list = None
         self.street_list = None
         self.wallhit = None
+        self.carLines = list()
 
         self.x = 0
         self.y = 0
@@ -117,7 +120,6 @@ class MyGame(arcade.Window):
     def setup(self):
 
         self.background = arcade.load_texture("Hintergrund.png")
-
         self.player1_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
         self.street_list = arcade.SpriteList()
@@ -202,18 +204,18 @@ class MyGame(arcade.Window):
         arcade.start_render()
 
         if self.click0 > 1:
-            arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 10)
+            arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
 
         if self.click0 >= 1:
-            arcade.draw_point(self.xy0_list[0][0], self.xy0_list[0][1], arcade.color.BLACK, 10)
+            arcade.draw_point(self.xy0_list[0][0], self.xy0_list[0][1], arcade.color.BLACK, 1)
 
         if self.click1 > 1:
-            arcade.draw_line_strip(self.xy1_list, arcade.color.BLACK, 10)
+            arcade.draw_line_strip(self.xy1_list, arcade.color.BLACK, 1)
 
         if self.click1 >= 1:
-            arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 10)
+            arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
 
-
+        arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
 
 
         #self.street_list.draw()
@@ -227,9 +229,9 @@ class MyGame(arcade.Window):
         #        count1 += 1
 
 
-
         arcade.draw_text(f"Speed: {self.player1_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
         arcade.draw_text(f"Angel_Speed: {self.player1_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
+        arcade.draw_text(f"Angel: {self.player1_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
         arcade.finish_render()
     def on_update(self, delta_time):
         global carDiag, carAngularAdd
@@ -245,22 +247,23 @@ class MyGame(arcade.Window):
             carX = self.player1_sprite.center_x
             carY = self.player1_sprite.center_y
 
-            carLines = []
+            self.carLines.clear()
 
             for i in range(4):
-                yadd = math.cos(carAng + carAngularAdd[i]) * carDiag
-                xadd = math.sin(carAng + carAngularAdd[i]) * carDiag
-                carLines.append( [carX + xadd, carY+yadd])
-            carLines.append(carLines[0])
+                tempList = [0,0]
+                tempList[0]=(carX+math.cos(-math.radians(90-(carAng + carAngularAdd[i]))) * carDiag)
+                tempList[1]=(carY+math.sin(-math.radians(90-(carAng + carAngularAdd[i]))) * carDiag)
+                self.carLines.append(list(tempList))
+            self.carLines.append(self.carLines[0])
 
 
             for i in range(0, len(self.xy0_list)-1, 1):
                 for j in range(4):
-                    if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], carLines[j], carLines[j+1]):
+                    if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], self.carLines[j], self.carLines[j+1]):
                         print("hit " + str(time.time()))
             for i in range(0, len(self.xy1_list)-1, 1):
                 for j in range(4):
-                    if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], carLines[j], carLines[j+1]):
+                    if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], self.carLines[j], self.carLines[j+1]):
                         print("hit " + str(time.time()))
 
         if self.player1_sprite.collides_with_list(self.wall_list):
