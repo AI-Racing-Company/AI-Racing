@@ -9,7 +9,9 @@ import math
 
 DIR = path.dirname(path.abspath(__file__))
 
-SPRITE_SCALING_PLAYERS = 1
+SPRITE_SCALING_PLAYERS = 1 #25 * 69 px
+carDiag = 36.69 #len of diagonal
+carAngularAdd = [20,-20, -160,160] # angles to add for calculation
 
 P1_MAX_HEALTH = 1
 
@@ -23,6 +25,17 @@ MAX_SPEED = 3
 MIN_SPEED = 0
 ANGLE_SPEED = 2
 FRICTION = 0.005
+
+
+class testConnetc():
+
+
+    def ccw(self, A, B, C):
+        return ((C[1] - A[1]) * (B[0] - A[0])) > ((B[1] - A[1]) * (C[0] - A[0]))
+
+    def intersect(self, A, B, C, D):
+        return self.ccw(A, C, D) != self.ccw(B, C, D) and self.ccw(A, B, C) != self.ccw(A, B, D)
+
 
 
 class Wall(arcade.Sprite):
@@ -39,7 +52,7 @@ class Player1(arcade.Sprite):
         super().__init__(image, scale)
 
         self.speed = 0
-        self.angle = 90
+        self.angle = 45
 
     def update(self):
         self.center_x += self.change_x
@@ -67,12 +80,15 @@ class Player1(arcade.Sprite):
 
 class MyGame(arcade.Window):
 
+
+
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
 
         self.player1_list = None
         self.wall_list = None
         self.street_list = None
+        self.wallhit = None
 
         self.x = 0
         self.y = 0
@@ -105,6 +121,8 @@ class MyGame(arcade.Window):
         self.player1_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
         self.street_list = arcade.SpriteList()
+
+        self.wallhit = testConnetc()
 
 
         self.p1_health = P1_MAX_HEALTH
@@ -166,14 +184,17 @@ class MyGame(arcade.Window):
             self.temp_list[1] = self.y
             self.xy0_list.append(list(self.temp_list))
             self.click0 += 1
+            print(self.xy0_list)
             kathete1 = self.xy0_list[self.click0-1][0]-self.xy0_list[0][0]
             kathete2 = self.xy0_list[self.click0-1][1]-self.xy0_list[0][1]
             hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
             if hypotenuse < 50 and self.click0 > 1:
+
                 self.temp_list[0] = self.xy0_list[0][0]
                 self.temp_list[1] = self.xy0_list[0][1]
                 self.xy0_list.append(list(self.temp_list))
                 self.linie += 1
+
 
 
 
@@ -211,12 +232,44 @@ class MyGame(arcade.Window):
         arcade.draw_text(f"Angel_Speed: {self.player1_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
         arcade.finish_render()
     def on_update(self, delta_time):
+        global carDiag, carAngularAdd
+        #
+        # upper left corner angle add: 20
+        # upper right: -20
+        # lower left: 160
+        # lower right: -160
+        #
+
+        if self.linie >= 2:
+            carAng = self.player1_sprite.angle
+            carX = self.player1_sprite.center_x
+            carY = self.player1_sprite.center_y
+
+            carLines = []
+
+            for i in range(4):
+                yadd = math.cos(carAng + carAngularAdd[i]) * carDiag
+                xadd = math.sin(carAng + carAngularAdd[i]) * carDiag
+                carLines.append( [carX + xadd, carY+yadd])
+            carLines.append(carLines[0])
+
+
+            for i in range(0, len(self.xy0_list)-1, 1):
+                for j in range(4):
+                    if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], carLines[j], carLines[j+1]):
+                        print("hit " + str(time.time()))
+            for i in range(0, len(self.xy1_list)-1, 1):
+                for j in range(4):
+                    if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], carLines[j], carLines[j+1]):
+                        print("hit " + str(time.time()))
 
         if self.player1_sprite.collides_with_list(self.wall_list):
             self.player1_sprite.center_x = 500
             self.player1_sprite.center_y = 150
             self.player1_sprite.speed = 0
             self.player1_sprite.angle = 90
+
+
 
         if self.player1_sprite.speed > FRICTION:
             self.player1_sprite.speed -= FRICTION
@@ -241,6 +294,8 @@ class MyGame(arcade.Window):
         elif self.player1_sprite.speed < -MIN_SPEED:
             self.player1_sprite.speed = -MIN_SPEED
         self.player1_list.update()
+
+
 
         #any_collisions = arcade.check_for_collision_with_list(self.player1_sprite,self.xy1_list)
         #if len(any_collisions) > 0:
@@ -274,6 +329,7 @@ class MyGame(arcade.Window):
             self.player1_sprite.change_angle = 0
 
 
+
 def main():
     window = MyGame()
     window.setup()
@@ -283,3 +339,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
