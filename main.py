@@ -12,6 +12,8 @@ DIR = path.dirname(path.abspath(__file__))
 SPRITE_SCALING_PLAYERS = 1 #25 * 69 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
+carViewNum = 15
+carViewAngle = 200
 
 P1_MAX_HEALTH = 1
 
@@ -36,6 +38,21 @@ class testConnetc():
     def intersect(self, A, B, C, D):
         return self.ccw(A, C, D) != self.ccw(B, C, D) and self.ccw(A, B, C) != self.ccw(A, B, D)
 
+    def line_intersection(self, line1, line2):
+        xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+
+        def det(a, b):
+            return a[0] * b[1] - a[1] * b[0]
+
+        div = det(xdiff, ydiff)
+        if div == 0:
+            raise Exception('lines do not intersect')
+
+        d = (det(*line1), det(*line2))
+        x = det(d, xdiff) / div
+        y = det(d, ydiff) / div
+        return x, y
 
 
 class Wall(arcade.Sprite):
@@ -52,7 +69,7 @@ class Player1(arcade.Sprite):
         super().__init__(image, scale)
 
         self.speed = 0
-        self.angle = 0
+        self.angle = 90
 
     def update(self):
         self.center_x += self.change_x
@@ -92,6 +109,8 @@ class MyGame(arcade.Window):
         self.street_list = None
         self.wallhit = None
         self.carLines = list()
+        self.carView = list()
+        self.carViewHit = list()
 
         self.x = 0
         self.y = 0
@@ -203,19 +222,25 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
 
-        if self.click0 > 1:
-            arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
+        if self.linie < 2:
+            if self.click0 > 1:
+                arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
 
-        if self.click0 >= 1:
-            arcade.draw_point(self.xy0_list[0][0], self.xy0_list[0][1], arcade.color.BLACK, 1)
+            if self.click0 >= 1:
+                arcade.draw_point(self.xy0_list[0][0], self.xy0_list[0][1], arcade.color.BLACK, 1)
 
-        if self.click1 > 1:
-            arcade.draw_line_strip(self.xy1_list, arcade.color.BLACK, 1)
+            if self.click1 > 1:
+                arcade.draw_line_strip(self.xy1_list, arcade.color.BLACK, 1)
 
-        if self.click1 >= 1:
-            arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
+            if self.click1 >= 1:
+                arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
 
-        arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
+
+        #arcade.draw_line_strip(self.carView, arcade.color.BLUE, 1)
+        #arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
+
+        for i in range(len(self.carViewHit)):
+            arcade.draw_point(self.carViewHit[i][0], self.carViewHit[i][1], arcade.color.RED, 5)
 
 
         #self.street_list.draw()
@@ -234,7 +259,7 @@ class MyGame(arcade.Window):
         arcade.draw_text(f"Angel: {self.player1_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
         arcade.finish_render()
     def on_update(self, delta_time):
-        global carDiag, carAngularAdd
+        global carDiag, carAngularAdd, carViewNum
         #
         # upper left corner angle add: 20
         # upper right: -20
@@ -243,6 +268,7 @@ class MyGame(arcade.Window):
         #
 
         if self.linie >= 2:
+
             carAng = self.player1_sprite.angle
             carX = self.player1_sprite.center_x
             carY = self.player1_sprite.center_y
@@ -260,11 +286,84 @@ class MyGame(arcade.Window):
             for i in range(0, len(self.xy0_list)-1, 1):
                 for j in range(4):
                     if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], self.carLines[j], self.carLines[j+1]):
-                        print("hit " + str(time.time()))
+                        continue
             for i in range(0, len(self.xy1_list)-1, 1):
                 for j in range(4):
                     if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], self.carLines[j], self.carLines[j+1]):
-                        print("hit " + str(time.time()))
+                        continue
+
+            self.carView.clear()
+
+            for i in range(carViewNum):
+                alpha = (carViewAngle+carViewAngle / carViewNum) / carViewNum # Don't touch, it works!!!
+                self.carView.append(list([carX,carY]))
+                tempList = [0, 0]
+                tempList[0] = (carX + math.sin(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
+                tempList[1] = (carY + math.cos(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
+                self.carView.append(list(tempList))
+
+            self.carViewHit.clear()
+
+            pointRange = list()
+
+            rayDis = list()
+            rayDis.clear()
+            pointRange.clear()
+
+            for j in range(len(self.carView) - 1):
+                for i in range(0, len(self.xy0_list)-1, 1):
+                    if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], self.carView[j], self.carView[j+1]):
+
+                        m1 = (self.xy0_list[i+1][1] - self.xy0_list[i][1]) / (self.xy0_list[i+1][0] - self.xy0_list[i][0])
+                        b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
+
+                        m2 = (self.carView[j+1][1] - self.carView[j][1]) / (self.carView[j+1][0] - self.carView[j][0])
+                        b2 = -(m2 * self.carView[j][0]) + self.carView[j][1]
+
+                        xi = (b2 - b1) / (m1 - m2)
+                        yi = m2 * xi + b2
+
+                        dis = math.sqrt((carX-xi)**2 + (carY-yi)**2)
+                        pointRange.append([dis, xi, yi])
+
+                for i in range(0, len(self.xy1_list) - 1, 1):
+                    if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], self.carView[j],self.carView[j + 1]):
+
+                        m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (self.xy1_list[i + 1][0] - self.xy1_list[i][0])
+                        b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
+
+                        m2 = (self.carView[j + 1][1] - self.carView[j][1]) / (self.carView[j + 1][0] - self.carView[j][0])
+                        b2 = -(m2 * self.carView[j][0]) + self.carView[j][1]
+
+                        xi = (b2 - b1) / (m1 - m2)
+                        yi = m2 * xi + b2
+
+                        dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
+                        pointRange.append([dis, xi, yi])
+
+                min = -1
+                minLen = 1920
+                for j in range(len(pointRange)):
+                    print(pointRange[j][0])
+                    print(j)
+                    if j == 0:
+                        minLen = pointRange[j][0]
+                        min = j
+                    else:
+                        if pointRange[j][0] < minLen:
+                            minLen = pointRange[j][0]
+                            min = j
+
+                if min != -1:
+                    self.carViewHit.append([pointRange[min][1], pointRange[min][2]])
+                pointRange.clear()
+
+
+
+            # for i in range(0, len(self.xy1_list)-1, 1):
+            #     for j in range(len(self.carView)-1):
+            #         if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], self.carView[j], self.carView[j+1]):
+            #             print("hit " + str(time.time()))
 
         if self.player1_sprite.collides_with_list(self.wall_list):
             self.player1_sprite.center_x = 500
