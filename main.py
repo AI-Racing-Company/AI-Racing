@@ -143,6 +143,8 @@ class MyGame(arcade.Window):
         self.wall_list = arcade.SpriteList()
         self.street_list = arcade.SpriteList()
 
+
+
         self.wallhit = testConnetc()
 
 
@@ -153,6 +155,11 @@ class MyGame(arcade.Window):
         self.player1_sprite.center_x = SCREEN_WIDTH / 2
         self.player1_sprite.center_y = 140
         self.player1_list.append(self.player1_sprite)
+
+        self.player1_sprite.center_x = 500
+        self.player1_sprite.center_y = 150
+        self.player1_sprite.speed = 0
+        self.player1_sprite.angle = 90
 
         count = 0
         count1 = 0
@@ -222,7 +229,7 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
 
-        if self.linie < 2:
+        if self.linie < 20:
             if self.click0 > 1:
                 arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
 
@@ -282,15 +289,23 @@ class MyGame(arcade.Window):
                 self.carLines.append(list(tempList))
             self.carLines.append(self.carLines[0])
 
+            wallHit = False
 
             for i in range(0, len(self.xy0_list)-1, 1):
                 for j in range(4):
                     if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], self.carLines[j], self.carLines[j+1]):
-                        continue
+                        wallHit = True
             for i in range(0, len(self.xy1_list)-1, 1):
                 for j in range(4):
                     if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], self.carLines[j], self.carLines[j+1]):
-                        continue
+                        wallHit = True
+
+            if wallHit:
+                self.player1_sprite.center_x = 500
+                self.player1_sprite.center_y = 150
+                self.player1_sprite.speed = 0
+                self.player1_sprite.angle = 90
+
 
             self.carView.clear()
 
@@ -365,11 +380,11 @@ class MyGame(arcade.Window):
             #         if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], self.carView[j], self.carView[j+1]):
             #             print("hit " + str(time.time()))
 
-        if self.player1_sprite.collides_with_list(self.wall_list):
-            self.player1_sprite.center_x = 500
-            self.player1_sprite.center_y = 150
-            self.player1_sprite.speed = 0
-            self.player1_sprite.angle = 90
+        # if self.player1_sprite.collides_with_list(self.wall_list):
+        #     self.player1_sprite.center_x = 500
+        #     self.player1_sprite.center_y = 150
+        #     self.player1_sprite.speed = 0
+        #     self.player1_sprite.angle = 90
 
 
 
