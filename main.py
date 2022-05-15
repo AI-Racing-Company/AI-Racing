@@ -52,7 +52,7 @@ class Player1(arcade.Sprite):
         super().__init__(image, scale)
 
         self.speed = 0
-        self.angle = 45
+        self.angle = 0
 
     def update(self):
         self.center_x += self.change_x
