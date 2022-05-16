@@ -12,8 +12,8 @@ DIR = path.dirname(path.abspath(__file__))
 SPRITE_SCALING_PLAYERS = 1 #25 * 69 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
-carViewNum = 5
-carViewAngle = 180
+carViewNum = 15
+carViewAngle = 200
 
 P1_MAX_HEALTH = 1
 
@@ -318,7 +318,8 @@ class MyGame(arcade.Window):
             self.carView.clear()
 
             for i in range(carViewNum):
-                alpha = (carViewAngle+carViewAngle / carViewNum) / carViewNum # Don't touch, it works!!!
+                alpha = carViewAngle / carViewNum
+                alpha += alpha / carViewNum
                 self.carView.append(list([carX,carY]))
                 tempList = [0, 0]
                 tempList[0] = (carX + math.sin(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
@@ -429,7 +430,7 @@ class MyGame(arcade.Window):
 
                             self.olddis = 2060
 
-                            self.sektorlinecoords.append(list(self.temp_list))
+                            self.sectorlinecoords.append(list(self.temp_list))
 
                             # for i in range(len(self.sektorlinecoords) - 1):
                             #     if self.sektorlinecoords[i][1] == self.sektorlinecoords[i + 1][1]:
