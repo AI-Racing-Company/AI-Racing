@@ -12,8 +12,8 @@ DIR = path.dirname(path.abspath(__file__))
 SPRITE_SCALING_PLAYERS = 1 #25 * 69 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
-carViewNum = 15
-carViewAngle = 200
+carViewNum = 5
+carViewAngle = 180
 
 P1_MAX_HEALTH = 1
 
@@ -156,10 +156,10 @@ class MyGame(arcade.Window):
         self.player1_sprite.center_y = 140
         self.player1_list.append(self.player1_sprite)
 
-        self.player1_sprite.center_x = 500
-        self.player1_sprite.center_y = 150
-        self.player1_sprite.speed = 0
-        self.player1_sprite.angle = 90
+        # self.player1_sprite.center_x = 500
+        # self.player1_sprite.center_y = 150
+        # self.player1_sprite.speed = 0
+        # self.player1_sprite.angle = 90
 
         count = 0
         count1 = 0
@@ -428,6 +428,11 @@ class MyGame(arcade.Window):
             self.A = True
         elif key == arcade.key.D:
             self.D = True
+        if key == arcade.key.R:
+            self.player1_sprite.center_x = self._mouse_x
+            self.player1_sprite.center_y = self._mouse_y
+            self.player1_sprite.speed = 0
+            self.player1_sprite.angle = 90
 
     def on_key_release(self, key, modifiers):
 
