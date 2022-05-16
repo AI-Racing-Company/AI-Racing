@@ -117,9 +117,13 @@ class MyGame(arcade.Window):
         self.temp_list = [0,0]
         self.xy0_list = list()
         self.xy1_list = list()
+        self.difflist = list()
+        self.sectorlinecoords = list()
+        self.count0 = 0
         self.click0 = 0
         self.click1 = 0
         self.linie = 0
+        self.olddis = 2060
 
         self.player1_sprite = None
         self.wall_sprite = None
@@ -156,10 +160,10 @@ class MyGame(arcade.Window):
         self.player1_sprite.center_y = 140
         self.player1_list.append(self.player1_sprite)
 
-        # self.player1_sprite.center_x = 500
-        # self.player1_sprite.center_y = 150
-        # self.player1_sprite.speed = 0
-        # self.player1_sprite.angle = 90
+        self.player1_sprite.center_x = 500
+        self.player1_sprite.center_y = 150
+        self.player1_sprite.speed = 0
+        self.player1_sprite.angle = 90
 
         count = 0
         count1 = 0
@@ -212,7 +216,6 @@ class MyGame(arcade.Window):
             self.temp_list[1] = self.y
             self.xy0_list.append(list(self.temp_list))
             self.click0 += 1
-            print(self.xy0_list)
             kathete1 = self.xy0_list[self.click0-1][0]-self.xy0_list[0][0]
             kathete2 = self.xy0_list[self.click0-1][1]-self.xy0_list[0][1]
             hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
@@ -243,12 +246,17 @@ class MyGame(arcade.Window):
                 arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
 
 
+
+
         #arcade.draw_line_strip(self.carView, arcade.color.BLUE, 1)
         #arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
 
         for i in range(len(self.carViewHit)):
             arcade.draw_point(self.carViewHit[i][0], self.carViewHit[i][1], arcade.color.RED, 5)
 
+        if self.linie >= 2:
+            for i in range(len(self.sectorlinecoords)-1):
+                arcade.draw_line(self.sectorlinecoords[i][0][0],self.sectorlinecoords[i][0][1],self.sectorlinecoords[i][1][0],self.sectorlinecoords[i][1][1], arcade.color.BLUE, 2)
 
         #self.street_list.draw()
         #self.wall_list.draw()
@@ -359,8 +367,6 @@ class MyGame(arcade.Window):
                 min = -1
                 minLen = 1920
                 for j in range(len(pointRange)):
-                    print(pointRange[j][0])
-                    print(j)
                     if j == 0:
                         minLen = pointRange[j][0]
                         min = j
@@ -372,6 +378,64 @@ class MyGame(arcade.Window):
                 if min != -1:
                     self.carViewHit.append([pointRange[min][1], pointRange[min][2]])
                 pointRange.clear()
+
+                if self.count0 == 0:
+                    if len(self.xy0_list) <= len(self.xy1_list):
+                        print("1.")
+                        for i in range(len(self.xy0_list)):
+
+                            for j in range(len(self.xy1_list)):
+
+                                dis = math.sqrt((self.xy1_list[j][0] - self.xy0_list[i][0]) ** 2 + (self.xy1_list[j][1] - self.xy0_list[i][1]) ** 2)
+                                if dis < self.olddis:
+                                    self.olddis = dis
+                                    self.difflist.append(self.olddis)
+                                    self.xy0 = [self.xy0_list[i][0], self.xy0_list[i][1]]
+                                    self.xy1 = [self.xy1_list[j][0], self.xy1_list[j][1]]
+                                    self.temp_list[0] = self.xy0
+                                    self.temp_list[1] = self.xy1
+
+
+
+
+
+                            self.olddis = 2060
+
+                            self.sectorlinecoords.append(list(self.temp_list))
+
+                            # for i in range(len(self.sektorlinecoords) - 1):
+                            #     if self.sektorlinecoords[i][1] == self.sektorlinecoords[i + 1][1]:
+                            #         print(self.sektorlinecoords[i][1])
+                            #         self.sektorlinecoords[i][1] = [self.xy1_list[i][0], self.xy1_list[i][1]]
+                        self.count0 +=1
+                    if len(self.xy0_list) > len(self.xy1_list):
+                        print("2.")
+                        for i in range(len(self.xy1_list)):
+
+                            for j in range(len(self.xy0_list)):
+
+                                dis = math.sqrt((self.xy1_list[i][0] - self.xy0_list[j][0]) ** 2 + (self.xy1_list[i][1] - self.xy0_list[j][1]) ** 2)
+                                if dis < self.olddis:
+                                    self.olddis = dis
+                                    self.difflist.append(self.olddis)
+                                    self.xy0 = [self.xy0_list[j][0], self.xy0_list[j][1]]
+                                    self.xy1 = [self.xy1_list[i][0], self.xy1_list[i][1]]
+                                    self.temp_list[0] = self.xy0
+                                    self.temp_list[1] = self.xy1
+
+
+
+
+
+                            self.olddis = 2060
+
+                            self.sektorlinecoords.append(list(self.temp_list))
+
+                            # for i in range(len(self.sektorlinecoords) - 1):
+                            #     if self.sektorlinecoords[i][1] == self.sektorlinecoords[i + 1][1]:
+                            #         print(self.sektorlinecoords[i][1])
+                            #         self.sektorlinecoords[i][1] = [self.xy1_list[i][0], self.xy1_list[i][1]]
+                        self.count0 +=1
 
 
 
