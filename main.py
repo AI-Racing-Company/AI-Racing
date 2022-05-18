@@ -3,6 +3,7 @@ import datetime
 from os import path
 import time
 import math
+import pyautogui
 
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
 
@@ -17,8 +18,8 @@ carViewAngle = 200
 
 P1_MAX_HEALTH = 1
 
-SCREEN_WIDTH = 1800
-SCREEN_HEIGHT = 1000
+SCREEN_WIDTH, SCREEN_HEIGHT= pyautogui.size()
+
 SCREEN_TITLE = "AI-Racing"
 
 ACCELERATION = 0.05
