@@ -4,22 +4,23 @@ from os import path
 import time
 import math
 import pyautogui
+import neat
 
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
 
 
 DIR = path.dirname(path.abspath(__file__))
 
-SPRITE_SCALING_PLAYERS = 1 #25 * 69 px
+SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
-carViewNum = 15
+carViewNum = 20
 carViewAngle = 200
 
 P1_MAX_HEALTH = 1
 
-SCREEN_WIDTH, SCREEN_HEIGHT= pyautogui.size()
-
+SCREEN_WIDTH, SCREEN_HEIGHT = pyautogui.size()
+SCREEN_HEIGHT = int(SCREEN_HEIGHT*0.9)
 SCREEN_TITLE = "AI-Racing"
 
 ACCELERATION = 0.05
@@ -32,7 +33,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 2
+POPULATION = 1
 
 
 class testConnetc():
@@ -124,6 +125,7 @@ class MyGame(arcade.Window):
         self.wall_list = None
         self.street_list = None
         self.wallhit = None
+        self.players = list()
 
         self.x = 0
         self.y = 0
@@ -138,7 +140,7 @@ class MyGame(arcade.Window):
         self.linie = 0
         self.olddis = 2060
 
-        self.player_sprite = None
+        player_sprite = None
         self.wall_sprite = None
         self.street_sprite = None
 
@@ -154,7 +156,7 @@ class MyGame(arcade.Window):
         self.set_mouse_visible(True)
 
     def setup(self):
-        global RESET_Y
+        global RESET_Y, POPULATION
         self.background = arcade.load_texture("Hintergrund.png")
         self.player_list = arcade.SpriteList()
         self.wall_list = arcade.SpriteList()
@@ -163,11 +165,10 @@ class MyGame(arcade.Window):
         self.wallhit = testConnetc()
         self.p1_health = P1_MAX_HEALTH
 
-        self.player_sprite = Player("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS)
-        self.player_list.append(self.player_sprite)
-        RESET_Y = RESET_Y + 100
-        self.player_sprite = Player("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS)
-        self.player_list.append(self.player_sprite)
+        for i in range(POPULATION):
+            self.player_sprite = Player("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS)
+            self.player_list.append(self.player_sprite)
+            self.players.append(0)
 
 
         count = 0
@@ -180,16 +181,18 @@ class MyGame(arcade.Window):
             self.y = y
             self.temp_list[0] = self.x
             self.temp_list[1] = self.y
+            if self.click1 > 1:
+                kathete1 = self.xy1_list[self.click1-1][0]-self.xy1_list[0][0]
+                kathete2 = self.xy1_list[self.click1-1][1]-self.xy1_list[0][1]
+                hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
+                if hypotenuse < 50:
+                    self.temp_list[0] = self.xy1_list[0][0]
+                    self.temp_list[1] = self.xy1_list[0][1]
+                    self.linie += 1
+
             self.xy1_list.append(list(self.temp_list))
             self.click1 += 1
-            kathete1 = self.xy1_list[self.click1-1][0]-self.xy1_list[0][0]
-            kathete2 = self.xy1_list[self.click1-1][1]-self.xy1_list[0][1]
-            hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
-            if hypotenuse < 50 and self.click1 > 1:
-                self.temp_list[0] = self.xy1_list[0][0]
-                self.temp_list[1] = self.xy1_list[0][1]
-                self.xy1_list.append(list(self.temp_list))
-                self.linie += 1
+
 
 
         if self.linie == 0:
@@ -197,17 +200,18 @@ class MyGame(arcade.Window):
             self.y = y
             self.temp_list[0] = self.x
             self.temp_list[1] = self.y
+            if self.click0 > 1:
+                kathete1 = self.xy0_list[self.click0-1][0]-self.xy0_list[0][0]
+                kathete2 = self.xy0_list[self.click0-1][1]-self.xy0_list[0][1]
+                hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
+                if hypotenuse < 50:
+
+                    self.temp_list[0] = self.xy0_list[0][0]
+                    self.temp_list[1] = self.xy0_list[0][1]
+                    self.linie += 1
             self.xy0_list.append(list(self.temp_list))
             self.click0 += 1
-            kathete1 = self.xy0_list[self.click0-1][0]-self.xy0_list[0][0]
-            kathete2 = self.xy0_list[self.click0-1][1]-self.xy0_list[0][1]
-            hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
-            if hypotenuse < 50 and self.click0 > 1:
-
-                self.temp_list[0] = self.xy0_list[0][0]
-                self.temp_list[1] = self.xy0_list[0][1]
-                self.xy0_list.append(list(self.temp_list))
-                self.linie += 1
+            
 
 
 
@@ -215,7 +219,7 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
 
-        if self.linie < 2:
+        if self.linie < 20:
             if self.click0 > 1:
                 arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
 
@@ -227,14 +231,14 @@ class MyGame(arcade.Window):
 
             if self.click1 >= 1:
                 arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
-            for i in range(len(self.sectorlinecoords)-1):
-                arcade.draw_line(self.sectorlinecoords[i][0][0],self.sectorlinecoords[i][0][1],self.sectorlinecoords[i][1][0],self.sectorlinecoords[i][1][1], arcade.color.BLUE, 2)
+            #for i in range(len(self.sectorlinecoords)-1):
+            #    arcade.draw_line(self.sectorlinecoords[i][0][0],self.sectorlinecoords[i][0][1],self.sectorlinecoords[i][1][0],self.sectorlinecoords[i][1][1], arcade.color.BLUE, 2)
 
 
 
 
 
-        #arcade.draw_line_strip(self.carView, arcade.color.BLUE, 1)
+        arcade.draw_line_strip(self.player_list[0].carView, arcade.color.BLUE, 1)
         #arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
 
         for i in range(len(self.player_list)):
@@ -254,49 +258,50 @@ class MyGame(arcade.Window):
         global carDiag, carAngularAdd, carViewNum
 
 
+
         if self.linie >= 2:
 
-            for play in range(len(self.player_list)):
-                carAng = self.player_list[play].angle
-                carX = self.player_list[play].center_x
-                carY = self.player_list[play].center_y
-
-                self.player_list[play].carLines.clear()
+            for index,player in enumerate(self.player_list):
+                carAng = player.angle
+                carX = player.center_x
+                carY = player.center_y
+                print(player.carView)
+                player.carLines.clear()
 
                 for i in range(4):
                     tempList = [0,0]
                     tempList[0]=(carX+math.cos(-math.radians(90-(carAng + carAngularAdd[i]))) * carDiag)
                     tempList[1]=(carY+math.sin(-math.radians(90-(carAng + carAngularAdd[i]))) * carDiag)
-                    self.player_list[play].carLines.append(list(tempList))
-                self.player_list[play].carLines.append(self.player_list[play].carLines[0])
+                    player.carLines.append(list(tempList))
+                player.carLines.append(player.carLines[0])
 
                 wallHit = False
 
                 for i in range(0, len(self.xy0_list)-1, 1):
                     for j in range(4):
-                        if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], self.player_list[play].carLines[j], self.player_list[play].carLines[j+1]):
+                        if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], player.carLines[j], player.carLines[j+1]):
                             wallHit = True
                 for i in range(0, len(self.xy1_list)-1, 1):
                     for j in range(4):
-                        if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], self.player_list[play].carLines[j], self.player_list[play].carLines[j+1]):
+                        if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i+1], player.carLines[j], player.carLines[j+1]):
                             wallHit = True
 
                 if wallHit:
-                    self.reset(play)
+                    self.reset(index)
 
 
-                self.player_list[play].carView.clear()
+                player.carView.clear()
 
                 for i in range(carViewNum):
                     alpha = carViewAngle / carViewNum
                     alpha += alpha / carViewNum
-                    self.player_list[play].carView.append(list([carX,carY]))
+                    player.carView.append(list([carX,carY]))
                     tempList = [0, 0]
                     tempList[0] = (carX + math.sin(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
                     tempList[1] = (carY + math.cos(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
-                    self.player_list[play].carView.append(list(tempList))
+                    player.carView.append(list(tempList))
 
-                self.player_list[play].carViewHit.clear()
+                player.carViewHit.clear()
 
                 pointRange = list()
                 rayDis = list()
@@ -304,74 +309,79 @@ class MyGame(arcade.Window):
                 rayDis.clear()
                 pointRange.clear()
 
-                for j in range(len(self.player_list[play].carView) - 1):
-                    for i in range(0, len(self.xy0_list)-1, 1):
-                        if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], self.player_list[play].carView[j], self.player_list[play].carView[j+1]):
+                for id3,playerView in enumerate(player.carView):
+                    if id3%2 == 1:
+                        for i in range(0, len(self.xy0_list)-1, 1):
+                            if id3 < len(player.carView):
+                                if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], playerView, [carX,carY]):
+                                    if (carY - playerView[0]) != 0:
+                                        m1 = (self.xy0_list[i+1][1] - self.xy0_list[i][1]) / (self.xy0_list[i+1][0] - self.xy0_list[i][0])
+                                        b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
 
-                            m1 = (self.xy0_list[i+1][1] - self.xy0_list[i][1]) / (self.xy0_list[i+1][0] - self.xy0_list[i][0])
-                            b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
+                                        m2 = (carY - playerView[1]) / (carX - playerView[0])
 
-                            m2 = (self.player_list[play].carView[j+1][1] - self.player_list[play].carView[j][1]) / (self.player_list[play].carView[j+1][0] - self.player_list[play].carView[j][0])
-                            b2 = -(m2 * self.player_list[play].carView[j][0]) + self.player_list[play].carView[j][1]
+                                        b2 = -(m2 * playerView[0]) + playerView[1]
 
-                            xi = (b2 - b1) / (m1 - m2)
-                            yi = m2 * xi + b2
+                                        xi = (b2 - b1) / (m1 - m2)
+                                        yi = m2 * xi + b2
 
-                            dis = math.sqrt((carX-xi)**2 + (carY-yi)**2)
-                            pointRange.append([dis, xi, yi])
+                                        dis = math.sqrt((carX-xi)**2 + (carY-yi)**2)
+                                        pointRange.append([dis, xi, yi])
 
-                    for i in range(0, len(self.xy1_list) - 1, 1):
-                        if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], self.player_list[play].carView[j],self.player_list[play].carView[j + 1]):
+                        for i in range(0, len(self.xy1_list) - 1, 1):
 
-                            m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (self.xy1_list[i + 1][0] - self.xy1_list[i][0])
-                            b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
+                            if id3 < len(player.carView):
+                                if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], playerView,[carX,carY]):
 
-                            m2 = (self.player_list[play].carView[j + 1][1] - self.player_list[play].carView[j][1]) / (self.player_list[play].carView[j + 1][0] - self.player_list[play].carView[j][0])
-                            b2 = -(m2 * self.player_list[play].carView[j][0]) + self.player_list[play].carView[j][1]
+                                    if (carY - playerView[0]) != 0:
+                                        m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (self.xy1_list[i + 1][0] - self.xy1_list[i][0])
+                                        b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
+                                        m2 = (carY - playerView[1]) / (carX - playerView[0])
+                                        b2 = -(m2 * playerView[0]) + playerView[1]
 
-                            xi = (b2 - b1) / (m1 - m2)
-                            yi = m2 * xi + b2
+                                        xi = (b2 - b1) / (m1 - m2)
+                                        yi = m2 * xi + b2
 
-                            dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
-                            pointRange.append([dis, xi, yi])
+                                        dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
+                                        pointRange.append([dis, xi, yi])
 
-                    min = -1
-                    minLen = 1920
-                    for j in range(len(pointRange)):
-                        if j == 0:
-                            minLen = pointRange[j][0]
-                            min = j
-                        else:
-                            if pointRange[j][0] < minLen:
+                        min = -1
+                        minLen = 1920
+                        for j in range(len(pointRange)):
+                            if j == 0:
                                 minLen = pointRange[j][0]
                                 min = j
+                            else:
+                                if pointRange[j][0] < minLen:
+                                    minLen = pointRange[j][0]
+                                    min = j
 
-                    if min != -1:
-                        self.player_list[play].carViewHit.append([pointRange[min][1], pointRange[min][2]])
-                    pointRange.clear()
+                        if min != -1:
+                            player.carViewHit.append([pointRange[min][1], pointRange[min][2]])
+                        pointRange.clear()
 
-                if self.player_list[play].speed > FRICTION:
-                    self.player_list[play].speed -= FRICTION
-                elif self.player_list[play].speed < -FRICTION:
-                    self.player_list[play].speed += FRICTION
+                if player.speed > FRICTION:
+                    player.speed -= FRICTION
+                elif player.speed < -FRICTION:
+                    player.speed += FRICTION
                 else:
-                    self.player_list[play].speed = 0
+                    player.speed = 0
 
                 if self.W and not self.S:
-                    self.player_list[play].speed += ACCELERATION
+                    player.speed += ACCELERATION
                 elif self.S and not self.W:
-                    self.player_list[play].speed += -DECELERATION
+                    player.speed += -DECELERATION
                 if self.A and not self.D:
-                    self.player_list[play].change_angle = 0.256 * (self.player_list[play].speed - 0.75) ** 3 - 1.344 * (self.player_list[play].speed - 0.75) ** 2 + 1.152 * self.player_list[play].speed - 0.75 + 1.728
+                    player.change_angle = 0.256 * (player.speed - 0.75) ** 3 - 1.344 * (player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728
                 elif self.D and not self.A:
-                    self.player_list[play].change_angle = -(0.256 * (self.player_list[play].speed - 0.75) ** 3 - 1.344 * (self.player_list[play].speed - 0.75) ** 2 + 1.152 * self.player_list[play].speed - 0.75 + 1.728)
+                    player.change_angle = -(0.256 * (player.speed - 0.75) ** 3 - 1.344 * (player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728)
 
-                if self.player_list[play].speed > MAX_SPEED:
-                    self.player_list[play].speed = MAX_SPEED
-                elif self.player_list[play].speed < -MAX_SPEED:
-                    self.player_list[play].speed = -MAX_SPEED
-                elif self.player_list[play].speed < -MIN_SPEED:
-                    self.player_list[play].speed = -MIN_SPEED
+                if player.speed > MAX_SPEED:
+                    player.speed = MAX_SPEED
+                elif player.speed < -MAX_SPEED:
+                    player.speed = -MAX_SPEED
+                elif player.speed < -MIN_SPEED:
+                    player.speed = -MIN_SPEED
                 self.player_list.update()
 
                 if self.count0 == 0:
@@ -460,6 +470,14 @@ class MyGame(arcade.Window):
         self.player_list[pid].center_y = RESET_Y
         self.player_list[pid].speed = 0
         self.player_list[pid].angle = 90
+
+    def eval_genomes(self, genomes, config):
+        for genome_id, genome in genomes:
+            genome.fitness = 4.0
+            net = neat.nn.FeedForwardNetwork.create(genome, config)
+            for xi, xo in enumerate(self.players):
+                output = net.activate(xi)
+                genome.fitness -= (output[0] - xo[0]) ** 2
 
 def main():
     window = MyGame()
