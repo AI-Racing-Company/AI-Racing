@@ -181,15 +181,16 @@ class MyGame(arcade.Window):
             self.y = y
             self.temp_list[0] = self.x
             self.temp_list[1] = self.y
+            self.xy1_list.append(list(self.temp_list))
             if self.click1 > 1:
-                kathete1 = self.xy1_list[self.click1-1][0]-self.xy1_list[0][0]
-                kathete2 = self.xy1_list[self.click1-1][1]-self.xy1_list[0][1]
+                kathete1 = self.xy1_list[self.click1][0]-self.xy1_list[0][0]
+                kathete2 = self.xy1_list[self.click1][1]-self.xy1_list[0][1]
                 hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
                 if hypotenuse < 50:
                     self.temp_list[0] = self.xy1_list[0][0]
                     self.temp_list[1] = self.xy1_list[0][1]
                     self.linie += 1
-
+            self.xy1_list.pop(self.click1)
             self.xy1_list.append(list(self.temp_list))
             self.click1 += 1
 
@@ -200,15 +201,17 @@ class MyGame(arcade.Window):
             self.y = y
             self.temp_list[0] = self.x
             self.temp_list[1] = self.y
+            self.xy0_list.append(list(self.temp_list))
             if self.click0 > 1:
-                kathete1 = self.xy0_list[self.click0-1][0]-self.xy0_list[0][0]
-                kathete2 = self.xy0_list[self.click0-1][1]-self.xy0_list[0][1]
+                kathete1 = self.xy0_list[self.click0][0]-self.xy0_list[0][0]
+                kathete2 = self.xy0_list[self.click0][1]-self.xy0_list[0][1]
                 hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
                 if hypotenuse < 50:
 
                     self.temp_list[0] = self.xy0_list[0][0]
                     self.temp_list[1] = self.xy0_list[0][1]
                     self.linie += 1
+            self.xy0_list.pop(self.click0)
             self.xy0_list.append(list(self.temp_list))
             self.click0 += 1
             
@@ -263,7 +266,7 @@ class MyGame(arcade.Window):
                 carAng = player.angle
                 carX = player.center_x
                 carY = player.center_y
-                print(player.carView)
+                #print(player.carView)
                 player.carLines.clear()
 
                 for i in range(4):
