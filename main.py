@@ -7,7 +7,7 @@ import pyautogui
 import neat
 
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
-
+# Use this variable to count merges: 1
 
 DIR = path.dirname(path.abspath(__file__))
 
