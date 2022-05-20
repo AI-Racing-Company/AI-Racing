@@ -33,7 +33,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 1
+POPULATION = 3
 
 
 class testConnetc():
@@ -255,9 +255,7 @@ class MyGame(arcade.Window):
 
         arcade.finish_render()
     def on_update(self, delta_time):
-        global carDiag, carAngularAdd, carViewNum
-
-
+        global carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
 
         if self.linie >= 2:
 
@@ -382,49 +380,49 @@ class MyGame(arcade.Window):
                     player.speed = -MAX_SPEED
                 elif player.speed < -MIN_SPEED:
                     player.speed = -MIN_SPEED
-                self.player_list.update()
+                player.update()
 
-                if self.count0 == 0:
-                    if len(self.xy0_list) <= len(self.xy1_list):
-                        print("1.")
-                        for i in range(len(self.xy0_list)):
-
-                            for j in range(len(self.xy1_list)):
-
-                                dis = math.sqrt((self.xy1_list[j][0] - self.xy0_list[i][0]) ** 2 + (self.xy1_list[j][1] - self.xy0_list[i][1]) ** 2)
-                                if dis < self.olddis:
-                                    self.olddis = dis
-                                    self.difflist.append(self.olddis)
-                                    self.xy0 = [self.xy0_list[i][0], self.xy0_list[i][1]]
-                                    self.xy1 = [self.xy1_list[j][0], self.xy1_list[j][1]]
-                                    self.temp_list[0] = self.xy0
-                                    self.temp_list[1] = self.xy1
-
-                            self.olddis = 2060
-
-                            self.sectorlinecoords.append(list(self.temp_list))
-
-                        self.count0 +=1
-                    if len(self.xy0_list) > len(self.xy1_list):
-                        print("2.")
-                        for i in range(len(self.xy1_list)):
-
-                            for j in range(len(self.xy0_list)):
-
-                                dis = math.sqrt((self.xy1_list[i][0] - self.xy0_list[j][0]) ** 2 + (self.xy1_list[i][1] - self.xy0_list[j][1]) ** 2)
-                                if dis < self.olddis:
-                                    self.olddis = dis
-                                    self.difflist.append(self.olddis)
-                                    self.xy0 = [self.xy0_list[j][0], self.xy0_list[j][1]]
-                                    self.xy1 = [self.xy1_list[i][0], self.xy1_list[i][1]]
-                                    self.temp_list[0] = self.xy0
-                                    self.temp_list[1] = self.xy1
-
-                            self.olddis = 2060
-
-                            self.sectorlinecoords.append(list(self.temp_list))
-
-                        self.count0 +=1
+      #          if self.count0 == 0:
+     #               if len(self.xy0_list) <= len(self.xy1_list):
+  ###                      print("1.")
+ #                       for i in range(len(self.xy0_list)):
+#
+ #                           for j in range(len(self.xy1_list)):
+#
+        #                        dis = math.sqrt((self.xy1_list[j][0] - self.xy0_list[i][0]) ** 2 + (self.xy1_list[j][1] - self.xy0_list[i][1]) ** 2)
+       #                         if dis < self.olddis:
+      #                              self.olddis = dis
+     #                               self.difflist.append(self.olddis)
+    #                                self.xy0 = [self.xy0_list[i][0], self.xy0_list[i][1]]
+   #                                 self.xy1 = [self.xy1_list[j][0], self.xy1_list[j][1]]
+  #                                  self.temp_list[0] = self.xy0
+ #                                   self.temp_list[1] = self.xy1
+#
+ #                           self.olddis = 2060
+#
+ #                           self.sectorlinecoords.append(list(self.temp_list))
+#
+    #                    self.count0 +=1
+   #                 if len(self.xy0_list) > len(self.xy1_list):
+  #                      print("2.")
+ #                       for i in range(len(self.xy1_list)):
+#
+ #                           for j in range(len(self.xy0_list)):
+#
+        #                        dis = math.sqrt((self.xy1_list[i][0] - self.xy0_list[j][0]) ** 2 + (self.xy1_list[i][1] - self.xy0_list[j][1]) ** 2)
+       #                         if dis < self.olddis:
+      #                              self.olddis = dis
+     #                               self.difflist.append(self.olddis)
+    #                                self.xy0 = [self.xy0_list[j][0], self.xy0_list[j][1]]
+   #                                 self.xy1 = [self.xy1_list[i][0], self.xy1_list[i][1]]
+  #                                  self.temp_list[0] = self.xy0
+ #                                   self.temp_list[1] = self.xy1
+#
+ #                           self.olddis = 2060
+#
+ #                           self.sectorlinecoords.append(list(self.temp_list))
+#
+#                        self.count0 +=1
 
 
 
