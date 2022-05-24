@@ -1,3 +1,5 @@
+import os
+
 import arcade
 import datetime
 from os import path
@@ -5,6 +7,7 @@ import time
 import math
 import pyautogui
 import neat
+import threading
 
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
 # Use this variable to count merges: 1
@@ -34,11 +37,16 @@ RESET_X = 500
 RESET_Y = 150
 
 POPULATION = 3
+all_cars_dead = False
+cars_dead = 0
+
+p = None
+
+
+
 
 
 class testConnetc():
-
-
     def ccw(self, A, B, C):
         return ((C[1] - A[1]) * (B[0] - A[0])) > ((B[1] - A[1]) * (C[0] - A[0]))
 
@@ -117,9 +125,25 @@ class Player(arcade.Sprite):
 
 
 class MyGame(arcade.Window):
-
+    global SCREEN_HEIGHT,SCREEN_WIDTH,SCREEN_TITLE
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+
+        # creating threads
+        t1 = threading.Thread(target=MyGame, name='t1')
+        t2 = threading.Thread(target=Player, name='t2')
+        t3 = threading.Thread(target=Wall, name='t3')
+        t4 = threading.Thread(target=testConnetc, name='t4')
+        t5 = threading.Thread(target=eval_genomes, name='t5')
+
+        # starting threads
+        t1.start()
+        t2.start()
+        t3.start()
+        t4.start()
+        t5.start()
+
+
 
         self.player_list = None
         self.wall_list = None
@@ -174,6 +198,10 @@ class MyGame(arcade.Window):
         count = 0
         count1 = 0
 
+        winner = p.run(eval_genomes, 300)
+
+        print('\nBest genome:\n{!s}'.format(winner))
+
 
     def on_mouse_press(self, x, y, button, key_modifiers):
         if self.linie == 1:
@@ -220,6 +248,7 @@ class MyGame(arcade.Window):
 
 
     def on_draw(self):
+        print("onDraw")
         arcade.start_render()
 
         if self.linie < 20:
@@ -258,8 +287,8 @@ class MyGame(arcade.Window):
 
         arcade.finish_render()
     def on_update(self, delta_time):
-        global carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
-
+        global all_cars_dead, card_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
+        print("onUpdate")
         if self.linie >= 2:
 
             for index,player in enumerate(self.player_list):
@@ -288,6 +317,9 @@ class MyGame(arcade.Window):
                             wallHit = True
 
                 if wallHit:
+                    card_dead += 1
+                    if cars_dead == POPULATION:
+                        all_cars_dead = True
                     self.reset(index)
 
 
@@ -472,23 +504,65 @@ class MyGame(arcade.Window):
         self.player_list[pid].speed = 0
         self.player_list[pid].angle = 90
 
-    def eval_genomes(self, genomes, config):
-        for genome_id, genome in genomes:
-            genome.fitness = 4.0
-            net = neat.nn.FeedForwardNetwork.create(genome, config)
-            for xi, xo in enumerate(self.players):
-                output = net.activate(xi)
-                genome.fitness -= (output[0] - xo[0]) ** 2
+def eval_genomes(genomes, config):
+    #while not all_cars_dead:
+    #    print("inWhile")
+    #    continue
+    for genome_id, genome in genomes:
+        genome.fitness = 0.0
+        net = neat.nn.FeedForwardNetwork.create(genome, config)
+        for xi, xo in enumerate(MyGame.players):
+            output = net.activate(xi)
+            genome.fitness -= (output[0] - xo[0]) ** 2
 
 def main():
+
     window = MyGame()
     window.setup()
     arcade.set_background_color(arcade.color.WHITE)
     arcade.run()
 
+def run(config_file):
+    global p
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_file)
+
+    # Create the population, which is the top-level object for a NEAT run.
+    p = neat.Population(config)
+
+    # Add a stdout reporter to show progress in the terminal.
+    p.add_reporter(neat.StdOutReporter(True))
+    stats = neat.StatisticsReporter()
+    p.add_reporter(stats)
+    p.add_reporter(neat.Checkpointer(5))
+
+
 
 if __name__ == "__main__":
+
+
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, 'config-feedforward.txt')
+    run(config_path)
     main()
+"""
+    # creating threads
+    t1 = threading.Thread(target=MyGame, name='t1')
+    t2 = threading.Thread(target=Player, name='t1')
+    t3 = threading.Thread(target=Wall, name='t1')
+    t4 = threading.Thread(target=testConnetc, name='t1')
+    t5 = threading.Thread(target=eval_genomes, name='t2')
+
+    # starting threads
+    t1.start()
+    t2.start()
+
+    # wait until all threads finish
+    t1.join()
+    t2.join()
+"""
+
 
 
 
