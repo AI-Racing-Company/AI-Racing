@@ -1,24 +1,33 @@
-import os
+import threading
 
 import arcade
-import datetime
 from os import path
 import time
 import math
 import pyautogui
-import neat
-import threading
+import csv
+import numpy as np
+import neat_implement
+
 
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
 # Use this variable to count merges: 1
+
+#TODO:
+# Nothing in particular
+
 
 DIR = path.dirname(path.abspath(__file__))
 
 SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
-carViewNum = 20
+carViewNum = 5
 carViewAngle = 200
+carViewDis = 500
+playerViewLen = list()
+playerKeyState = list()
+
 
 P1_MAX_HEALTH = 1
 
@@ -36,18 +45,18 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 3
+POPULATION = 2
 all_cars_dead = False
 cars_dead = 0
+
+player_list = arcade.SpriteList()
 
 p = None
 
 
-
-
-
 class testConnetc():
     def ccw(self, A, B, C):
+
         return ((C[1] - A[1]) * (B[0] - A[0])) > ((B[1] - A[1]) * (C[0] - A[0]))
 
     def intersect(self, A, B, C, D):
@@ -91,6 +100,13 @@ class Player(arcade.Sprite):
         self.distance = 0
         self.lastTime = time.time()
 
+        self.acc = False
+        self.dec = False
+        self.lef = False
+        self.rig = False
+
+        self.dead = False
+
         self.carLines = list()
         self.carView = list()
         self.carViewHit = list()
@@ -126,26 +142,10 @@ class Player(arcade.Sprite):
 
 class MyGame(arcade.Window):
     global SCREEN_HEIGHT,SCREEN_WIDTH,SCREEN_TITLE
+
     def __init__(self):
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
 
-        # creating threads
-        t1 = threading.Thread(target=MyGame, name='t1')
-        t2 = threading.Thread(target=Player, name='t2')
-        t3 = threading.Thread(target=Wall, name='t3')
-        t4 = threading.Thread(target=testConnetc, name='t4')
-        t5 = threading.Thread(target=eval_genomes, name='t5')
-
-        # starting threads
-        t1.start()
-        t2.start()
-        t3.start()
-        t4.start()
-        t5.start()
-
-
-
-        self.player_list = None
         self.wall_list = None
         self.street_list = None
         self.wallhit = None
@@ -180,27 +180,31 @@ class MyGame(arcade.Window):
         self.set_mouse_visible(True)
 
     def setup(self):
-        global RESET_Y, POPULATION
+        global RESET_Y, POPULATION, carViewNum, player_list, playerKeyState
         self.background = arcade.load_texture("Hintergrund.png")
-        self.player_list = arcade.SpriteList()
+
         self.wall_list = arcade.SpriteList()
         self.street_list = arcade.SpriteList()
 
         self.wallhit = testConnetc()
         self.p1_health = P1_MAX_HEALTH
 
+        self.start = False
+
         for i in range(POPULATION):
             self.player_sprite = Player("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS)
-            self.player_list.append(self.player_sprite)
+            player_list.append(self.player_sprite)
             self.players.append(0)
+            helpList = list()
+            for j in range(4):
+                helpList.append(False)
+            playerKeyState.append(helpList)
 
+            helpList.clear()
+            for j in range(carViewNum):
+                helpList.append(carViewDis)
+            playerViewLen.append(helpList)
 
-        count = 0
-        count1 = 0
-
-        winner = p.run(eval_genomes, 300)
-
-        print('\nBest genome:\n{!s}'.format(winner))
 
 
     def on_mouse_press(self, x, y, button, key_modifiers):
@@ -218,6 +222,7 @@ class MyGame(arcade.Window):
                     self.temp_list[0] = self.xy1_list[0][0]
                     self.temp_list[1] = self.xy1_list[0][1]
                     self.linie += 1
+                    self.start = True
             self.xy1_list.pop(self.click1)
             self.xy1_list.append(list(self.temp_list))
             self.click1 += 1
@@ -242,13 +247,14 @@ class MyGame(arcade.Window):
             self.xy0_list.pop(self.click0)
             self.xy0_list.append(list(self.temp_list))
             self.click0 += 1
+
             
 
 
 
 
     def on_draw(self):
-        print("onDraw")
+
         arcade.start_render()
 
         if self.linie < 20:
@@ -270,28 +276,36 @@ class MyGame(arcade.Window):
 
 
 
-        arcade.draw_line_strip(self.player_list[0].carView, arcade.color.BLUE, 1)
+        arcade.draw_line_strip(player_list[0].carView, arcade.color.BLUE, 1)
         #arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
 
-        for i in range(len(self.player_list)):
-            for j in range(len(self.player_list[i].carViewHit)):
-                arcade.draw_point(self.player_list[i].carViewHit[j][0], self.player_list[i].carViewHit[j][1], arcade.color.RED, 5)
+        for i in range(len(player_list)):
+            for j in range(len(player_list[i].carViewHit)):
+                arcade.draw_point(player_list[i].carViewHit[j][0], player_list[i].carViewHit[j][1], arcade.color.RED, 5)
 
 
-        self.player_list.draw()
+        player_list.draw()
 
-        arcade.draw_text(f"Distance: {self.player_sprite.distance:6.4f}", 10, 90, arcade.color.BLACK)
+        arcade.draw_text(f"Distance driven: {self.player_sprite.distance:6.4f}", 10, 90, arcade.color.BLACK)
         arcade.draw_text(f"Angel: {self.player_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
         arcade.draw_text(f"Speed: {self.player_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
         arcade.draw_text(f"Angel_Speed: {self.player_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
 
+        for i in range(carViewNum):
+            arcade.draw_text(f"distance: {playerViewLen[0][i]:6.3f}", 10, 110 + i*20, arcade.color.BLACK)
+
         arcade.finish_render()
+
+
+
+
+
     def on_update(self, delta_time):
-        global all_cars_dead, card_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
-        print("onUpdate")
+        global carViewDis, playerViewLen, all_cars_dead, cars_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
+
         if self.linie >= 2:
 
-            for index,player in enumerate(self.player_list):
+            for index,player in enumerate(player_list):
                 carAng = player.angle
                 carX = player.center_x
                 carY = player.center_y
@@ -317,7 +331,7 @@ class MyGame(arcade.Window):
                             wallHit = True
 
                 if wallHit:
-                    card_dead += 1
+                    cars_dead += 1
                     if cars_dead == POPULATION:
                         all_cars_dead = True
                     self.reset(index)
@@ -330,8 +344,8 @@ class MyGame(arcade.Window):
                     alpha += alpha / carViewNum
                     player.carView.append(list([carX,carY]))
                     tempList = [0, 0]
-                    tempList[0] = (carX + math.sin(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
-                    tempList[1] = (carY + math.cos(-math.radians(carAng+alpha*i-carViewAngle/2)) * 500)
+                    tempList[0] = (carX + math.sin(-math.radians(carAng+alpha*i-carViewAngle/2)) * carViewDis)
+                    tempList[1] = (carY + math.cos(-math.radians(carAng+alpha*i-carViewAngle/2)) * carViewDis)
                     player.carView.append(list(tempList))
 
                 player.carViewHit.clear()
@@ -342,10 +356,15 @@ class MyGame(arcade.Window):
                 rayDis.clear()
                 pointRange.clear()
 
+                helpList = list()
+
                 for id3,playerView in enumerate(player.carView):
                     if id3%2 == 1:
+
                         for i in range(0, len(self.xy0_list)-1, 1):
+
                             if id3 < len(player.carView):
+
                                 if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], playerView, [carX,carY]):
                                     if (carY - playerView[0]) != 0:
                                         m1 = (self.xy0_list[i+1][1] - self.xy0_list[i][1]) / (self.xy0_list[i+1][0] - self.xy0_list[i][0])
@@ -360,6 +379,8 @@ class MyGame(arcade.Window):
 
                                         dis = math.sqrt((carX-xi)**2 + (carY-yi)**2)
                                         pointRange.append([dis, xi, yi])
+
+
 
                         for i in range(0, len(self.xy1_list) - 1, 1):
 
@@ -378,6 +399,7 @@ class MyGame(arcade.Window):
                                         dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
                                         pointRange.append([dis, xi, yi])
 
+
                         min = -1
                         minLen = 1920
                         for j in range(len(pointRange)):
@@ -391,7 +413,11 @@ class MyGame(arcade.Window):
 
                         if min != -1:
                             player.carViewHit.append([pointRange[min][1], pointRange[min][2]])
+                            helpList.append(pointRange[min][0])
+                        else:
+                            helpList.append(carViewDis)
                         pointRange.clear()
+                playerViewLen[index] = helpList;
 
                 if player.speed > FRICTION:
                     player.speed -= FRICTION
@@ -400,13 +426,14 @@ class MyGame(arcade.Window):
                 else:
                     player.speed = 0
 
-                if self.W and not self.S:
+
+                if player.acc and not player.dec:
                     player.speed += ACCELERATION
-                elif self.S and not self.W:
+                elif player.dec and not player.acc:
                     player.speed += -DECELERATION
-                if self.A and not self.D:
+                if player.lef and not player.rig:
                     player.change_angle = 0.256 * (player.speed - 0.75) ** 3 - 1.344 * (player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728
-                elif self.D and not self.A:
+                elif player.rig and not player.lef:
                     player.change_angle = -(0.256 * (player.speed - 0.75) ** 3 - 1.344 * (player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728)
 
                 if player.speed > MAX_SPEED:
@@ -417,103 +444,196 @@ class MyGame(arcade.Window):
                     player.speed = -MIN_SPEED
                 player.update()
 
-      #          if self.count0 == 0:
-     #               if len(self.xy0_list) <= len(self.xy1_list):
-  ###                      print("1.")
- #                       for i in range(len(self.xy0_list)):
-#
- #                           for j in range(len(self.xy1_list)):
-#
-        #                        dis = math.sqrt((self.xy1_list[j][0] - self.xy0_list[i][0]) ** 2 + (self.xy1_list[j][1] - self.xy0_list[i][1]) ** 2)
-       #                         if dis < self.olddis:
-      #                              self.olddis = dis
-     #                               self.difflist.append(self.olddis)
-    #                                self.xy0 = [self.xy0_list[i][0], self.xy0_list[i][1]]
-   #                                 self.xy1 = [self.xy1_list[j][0], self.xy1_list[j][1]]
-  #                                  self.temp_list[0] = self.xy0
- #                                   self.temp_list[1] = self.xy1
-#
- #                           self.olddis = 2060
-#
- #                           self.sectorlinecoords.append(list(self.temp_list))
-#
-    #                    self.count0 +=1
-   #                 if len(self.xy0_list) > len(self.xy1_list):
-  #                      print("2.")
- #                       for i in range(len(self.xy1_list)):
-#
- #                           for j in range(len(self.xy0_list)):
-#
-        #                        dis = math.sqrt((self.xy1_list[i][0] - self.xy0_list[j][0]) ** 2 + (self.xy1_list[i][1] - self.xy0_list[j][1]) ** 2)
-       #                         if dis < self.olddis:
-      #                              self.olddis = dis
-     #                               self.difflist.append(self.olddis)
-    #                                self.xy0 = [self.xy0_list[j][0], self.xy0_list[j][1]]
-   #                                 self.xy1 = [self.xy1_list[i][0], self.xy1_list[i][1]]
-  #                                  self.temp_list[0] = self.xy0
- #                                   self.temp_list[1] = self.xy1
-#
- #                           self.olddis = 2060
-#
- #                           self.sectorlinecoords.append(list(self.temp_list))
-#
-#                        self.count0 +=1
-
-
+        if(self.start):
+            print(len(player_list))
+            #neat_implement.init()
+            self.start = False
 
 
 
     def on_key_press(self, key, modifiers):
-        global RESET_X,RESET_Y
+        global RESET_X,RESET_Y, playerKeyState
+        w,a,s,d =False,False,False,False
         if key == arcade.key.W:
-            self.W = True
+            player_list[0].acc = True
         elif key == arcade.key.S:
-            self.S = True
+            player_list[0].dec = True
         elif key == arcade.key.A:
-            self.A = True
+            player_list[0].lef = True
         elif key == arcade.key.D:
-            self.D = True
+            player_list[0].rig = True
+
+        if key == arcade.key.UP:
+            player_list[1].acc = True
+        elif key == arcade.key.DOWN:
+            player_list[1].dec = True
+        elif key == arcade.key.LEFT:
+            player_list[1].lef = True
+        elif key == arcade.key.RIGHT:
+            player_list[1].rig = True
+
+        if key == arcade.key.E:
+            self.exportTrack()
+        if key == arcade.key.I:
+            self.importTrack()
+
         if key == arcade.key.R:
             RESET_X = self._mouse_x
             RESET_Y = self._mouse_y
 
-            for index,value in enumerate(self.player_list):
+            for index,value in enumerate(player_list):
                 self.reset(index)
 
     def on_key_release(self, key, modifiers):
-
+        global playerKeyState
         if key == arcade.key.W:
-            self.W = False
+            player_list[0].acc = False
         elif key == arcade.key.S:
-            self.S = False
+            player_list[0].dec = False
         elif key == arcade.key.A:
-            self.A = False
+            player_list[0].lef = False
         elif key == arcade.key.D:
-            self.D = False
+            player_list[0].rig = False
 
-        for i in range(len(self.player_list)):
-            if key == arcade.key.A:
-                self.player_list[i].change_angle = 0
-            elif key == arcade.key.D:
-                self.player_list[i].change_angle = 0
+        if key == arcade.key.UP:
+            player_list[1].acc = False
+        elif key == arcade.key.DOWN:
+            player_list[1].dec = False
+        elif key == arcade.key.LEFT:
+            player_list[1].lef = False
+        elif key == arcade.key.RIGHT:
+            player_list[1].rig = False
+
+
+        if key == arcade.key.A:
+            player_list[0].change_angle = 0
+        elif key == arcade.key.D:
+            player_list[0].change_angle = 0
+        if key == arcade.key.LEFT:
+            player_list[1].change_angle = 0
+        elif key == arcade.key.RIGHT:
+            player_list[1].change_angle = 0
 
     def reset(self, pid):
         global RESET_X,RESET_Y
-        self.player_list[pid].center_x = RESET_X
-        self.player_list[pid].center_y = RESET_Y
-        self.player_list[pid].speed = 0
-        self.player_list[pid].angle = 90
+        player_list[pid].center_x = RESET_X
+        player_list[pid].center_y = RESET_Y
+        player_list[pid].speed = 0
+        player_list[pid].angle = 90
 
-def eval_genomes(genomes, config):
-    #while not all_cars_dead:
-    #    print("inWhile")
-    #    continue
-    for genome_id, genome in genomes:
-        genome.fitness = 0.0
-        net = neat.nn.FeedForwardNetwork.create(genome, config)
-        for xi, xo in enumerate(MyGame.players):
-            output = net.activate(xi)
-            genome.fitness -= (output[0] - xo[0]) ** 2
+    def acc(self, id, tf):
+        player_list[id].acc = tf
+    def dec(self, id, tf):
+        player_list[id].dec = tf
+    def rig(self, id, tf):
+        player_list[id].lef = tf
+    def lef(self, id, tf):
+        player_list[id].rig = tf
+    def getViewLen(self, i):
+        return playerViewLen[i]
+
+    def exportTrack(self):
+        print("exporting")
+
+        data = ["",""]
+
+        #Tabelle1 = [[5, 35], [76, 24], [97, 75]]
+        TempT0 = list()
+        TempT1 = list()
+        for id, element in enumerate(self.xy0_list):
+            TempT0.append(element[0])
+            TempT1.append(element[1])
+
+        Tabelle_x0 = list(map(str, TempT0))
+        Tabelle_y0 = list(map(str, TempT1))
+
+        TempT0.clear()
+        TempT1.clear()
+
+
+        for id, element in enumerate(self.xy1_list):
+            TempT0.append(element[0])
+            TempT1.append(element[1])
+
+        Tabelle_x1 = list(map(str, TempT0))
+        Tabelle_y1 = list(map(str, TempT1))
+
+        TempT0.clear()
+        TempT1.clear()
+
+        print(Tabelle_x0)
+        print(Tabelle_y0)
+        print(Tabelle_x1)
+        print(Tabelle_y1)
+
+        ttx1 = list()
+        tty1 = list()
+        ttx2 = list()
+        tty2 = list()
+
+        for id,elem in enumerate(self.xy0_list):
+            ttx1.append(elem[0])
+            tty1.append(elem[1])
+        for id,elem in enumerate(self.xy1_list):
+            ttx2.append(elem[0])
+            tty2.append(elem[1])
+
+
+        with open('track.csv', 'w', newline='') as f:
+            writer = csv.writer(f)
+
+            # write the data
+
+            writer.writerow(np.array(ttx1))
+            writer.writerow(np.array(tty1))
+            writer.writerow(np.array(ttx2))
+            writer.writerow(np.array(tty2))
+        print("done exporting")
+
+    def importTrack(self):
+        print("importing")
+
+        self.xy0_list = list()
+        self.xy1_list = list()
+
+        dataList00 = list()
+        dataList01 = list()
+        dataList10 = list()
+        dataList11= list()
+
+        data = list()
+
+        with open('track.csv', 'r') as f:
+            reader = csv.reader(f)
+
+            for row in reader:
+                data.append(row)
+                print(row)
+
+
+        print("done importing")
+
+        dataList00 = data[0]
+        dataList01 = data[1]
+        dataList10 = data[2]
+        dataList11 = data[3]
+
+        for id,elem in enumerate(dataList00):
+            hl = list()
+            hl.append(int(elem))
+            hl.append(int(dataList01[id]))
+            self.xy0_list.append(list(hl))
+            hl.clear()
+        for id,elem in enumerate(dataList10):
+            hl = list()
+            hl.append(int(elem))
+            hl.append(int(dataList11[id]))
+            self.xy1_list.append(list(hl))
+            hl.clear()
+        self.linie = 2
+        self.click0 = 100
+        self.click1 = 100
+
 
 def main():
 
@@ -522,46 +642,13 @@ def main():
     arcade.set_background_color(arcade.color.WHITE)
     arcade.run()
 
-def run(config_file):
-    global p
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
-                         config_file)
-
-    # Create the population, which is the top-level object for a NEAT run.
-    p = neat.Population(config)
-
-    # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(5))
-
+def getPlayerList():
+    return player_list
 
 
 if __name__ == "__main__":
 
-
-    local_dir = os.path.dirname(__file__)
-    config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path)
     main()
-"""
-    # creating threads
-    t1 = threading.Thread(target=MyGame, name='t1')
-    t2 = threading.Thread(target=Player, name='t1')
-    t3 = threading.Thread(target=Wall, name='t1')
-    t4 = threading.Thread(target=testConnetc, name='t1')
-    t5 = threading.Thread(target=eval_genomes, name='t2')
-
-    # starting threads
-    t1.start()
-    t2.start()
-
-    # wait until all threads finish
-    t1.join()
-    t2.join()
-"""
 
 
 
