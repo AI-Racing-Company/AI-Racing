@@ -4,6 +4,7 @@ import csv
 import math
 import time
 import pyautogui
+import numpy as np
 
 
 SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
@@ -11,7 +12,7 @@ carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
 carViewNum = 5
 carViewAngle = 200
-carViewDis = 500
+carViewDis = 50
 playerViewLen = list()
 playerKeyState = list()
 window = None
@@ -34,7 +35,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 50
+POPULATION = 500
 keep = 5
 
 cars_alive = POPULATION
@@ -46,6 +47,7 @@ player_list = list()
 p = None
 
 gen = 0
+deltatime = 1
 
 class testConnetc():
     def ccw(self, A, B, C):
@@ -424,7 +426,7 @@ def run(config_file):
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(5))
 
-    winner = p.run(eval_genomes, 300)
+    winner = p.run(eval_genomes, 500)
 
     print('\nBest genome:\n{!s}'.format(winner))
 
@@ -437,7 +439,7 @@ def init():
 
 
 def eval_genomes(genomes, config):
-    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep
+    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime
     player_list.clear()
     """
     runs the simulation of the current population of
@@ -460,20 +462,29 @@ def eval_genomes(genomes, config):
         ge.append(genome)
 
     run = True
-    t0 = time.time_ns()
+    t0 = time.time()
     c = 0
     while not all_cars_dead:
-        if time.time_ns()-t0 > 2500000000*(int(gen/5)+1) :
+        if time.time()-t0 > 5:
             break
         else:
+
+            tbef = time.time_ns()
             window.on_update()
+            deltatime = (time.time_ns() - tbef)
+
+
+            updatePlayerList()
+
+
+
             c+=1
             if len(player_list) > 0 and c == 20:
                 c = 0
-                print(f"fit:{player_list[0].distance: 6.3f}   x:{player_list[0].center_x: 6.3f}   y:{player_list[0].center_y: 6.3f}   v:{player_list[0].speed: 6.3f}   ang:{player_list[0].angle: 6.3f}   w:{player_list[0].acc}   s:{player_list[0].dec}   a:{player_list[0].lef}   d:{player_list[0].rig}")
-            for i in range(cars_alive):  # give each  a fitness of 0.1 for each frame it stays alive
-                # send  location, top pipe location and bottom pipe location and determine from network whether to jump or not
-                ge[i].fitness = player_list[i].distance
+                #print(f"fit:{player_list[0].distance: 6.3f}   x:{player_list[0].center_x: 6.3f}   y:{player_list[0].center_y: 6.3f}   v:{player_list[0].speed: 6.3f}   ang:{player_list[0].angle: 6.3f}   w:{player_list[0].acc}   s:{player_list[0].dec}   a:{player_list[0].lef}   d:{player_list[0].rig}")
+            for i in range(len(player_list)):
+                x = player_list[i].distance
+                ge[i].fitness = x
                 inputList = MyGame.getViewLen(None, i)
                 allInputs = [inputList[0], inputList[1], inputList[2], inputList[3], inputList[4], player_list[i].speed]
                 output = nets[i].activate(allInputs)
@@ -530,7 +541,6 @@ def eval_genomes(genomes, config):
     nets = hnet
 
     best.sort(key=lambda x: x[1])
-    print("\n best")
     for elem in ge:
         print(elem.fitness)
 
@@ -545,6 +555,29 @@ def main():
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
     run(config_path)
+
+def updatePlayerList():
+    global player_list
+
+    playerExport = list()
+
+    for id, element in enumerate(player_list):
+        tmpList = list()
+        tmpList.append(element.center_x)
+        tmpList.append(element.center_y)
+        tmpList.append(element.angle)
+        playerExport.append(tmpList)
+
+
+    with open('playerData.csv', 'w', newline='') as f:
+        writer = csv.writer(f)
+
+        # write the data
+
+        for elem in playerExport:
+            writer.writerow(np.array(elem))
+
+
 
 if __name__ == "__main__":
 
