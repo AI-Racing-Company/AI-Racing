@@ -16,6 +16,7 @@ carViewDis = 50
 playerViewLen = list()
 playerKeyState = list()
 window = None
+minfit = 50
 
 t0 = 0
 
@@ -35,7 +36,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 500
+POPULATION = 10
 keep = 5
 
 cars_alive = POPULATION
@@ -84,7 +85,7 @@ class Player():
         self.center_y = RESET_Y
         self.speed = 0
         self.distance = 0
-        self.lastTime = time.time()
+
 
         self.lastDis = -1
 
@@ -117,8 +118,7 @@ class Player():
 
             self.angle = self.angle % 360
 
-            self.distance += self.speed * (time.time() - self.lastTime) * 100
-            self.lastTime = time.time()
+            self.distance += self.speed
 
             self.center_x += -self.speed * math.sin(angle_rad)
             self.center_y += self.speed * math.cos(angle_rad)
@@ -186,6 +186,7 @@ class MyGame():
         if self.linie >= 2:
 
             for index, player in enumerate(player_list):
+                carDied = False
                 carAng = player.angle
                 carX = player.center_x
                 carY = player.center_y
@@ -220,115 +221,118 @@ class MyGame():
                     #print(cars_alive)
                     self.reset(index)
                     player_list.pop(index)
+                    carDied = True
 
-                player.carView.clear()
+                if not carDied :
+                    player.carView.clear()
 
-                for i in range(carViewNum):
-                    alpha = carViewAngle / carViewNum
-                    alpha += alpha / carViewNum
-                    player.carView.append(list([carX, carY]))
-                    tempList = [0, 0]
-                    tempList[0] = (carX + math.sin(-math.radians(carAng + alpha * i - carViewAngle / 2)) * carViewDis)
-                    tempList[1] = (carY + math.cos(-math.radians(carAng + alpha * i - carViewAngle / 2)) * carViewDis)
-                    player.carView.append(list(tempList))
+                    for i in range(carViewNum):
+                        alpha = carViewAngle / carViewNum
+                        alpha += alpha / carViewNum
+                        player.carView.append(list([carX, carY]))
+                        tempList = [0, 0]
+                        tempList[0] = (carX + math.sin(-math.radians(carAng + alpha * i - carViewAngle / 2)) * carViewDis)
+                        tempList[1] = (carY + math.cos(-math.radians(carAng + alpha * i - carViewAngle / 2)) * carViewDis)
+                        player.carView.append(list(tempList))
 
-                player.carViewHit.clear()
+                    player.carViewHit.clear()
 
-                pointRange = list()
-                rayDis = list()
+                    pointRange = list()
+                    rayDis = list()
 
-                rayDis.clear()
-                pointRange.clear()
+                    rayDis.clear()
+                    pointRange.clear()
 
-                helpList = list()
+                    helpList = list()
 
-                for id3, playerView in enumerate(player.carView):
-                    if id3 % 2 == 1:
+                    for id3, playerView in enumerate(player.carView):
+                        if id3 % 2 == 1:
 
-                        for i in range(0, len(self.xy0_list) - 1, 1):
+                            for i in range(0, len(self.xy0_list) - 1, 1):
 
-                            if id3 < len(player.carView):
+                                if id3 < len(player.carView):
 
-                                if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i + 1], playerView,
-                                                          [carX, carY]):
-                                    if (carY - playerView[0]) != 0:
-                                        m1 = (self.xy0_list[i + 1][1] - self.xy0_list[i][1]) / (
-                                                    self.xy0_list[i + 1][0] - self.xy0_list[i][0])
-                                        b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
+                                    if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i + 1], playerView,
+                                                              [carX, carY]):
+                                        if (carY - playerView[0]) != 0:
+                                            m1 = (self.xy0_list[i + 1][1] - self.xy0_list[i][1]) / (
+                                                        self.xy0_list[i + 1][0] - self.xy0_list[i][0])
+                                            b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
 
-                                        m2 = (carY - playerView[1]) / (carX - playerView[0])
+                                            m2 = (carY - playerView[1]) / (carX - playerView[0])
 
-                                        b2 = -(m2 * playerView[0]) + playerView[1]
+                                            b2 = -(m2 * playerView[0]) + playerView[1]
 
-                                        xi = (b2 - b1) / (m1 - m2)
-                                        yi = m2 * xi + b2
+                                            xi = (b2 - b1) / (m1 - m2)
+                                            yi = m2 * xi + b2
 
-                                        dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
-                                        pointRange.append([dis, xi, yi])
+                                            dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
+                                            pointRange.append([dis, xi, yi])
 
-                        for i in range(0, len(self.xy1_list) - 1, 1):
+                            for i in range(0, len(self.xy1_list) - 1, 1):
 
-                            if id3 < len(player.carView):
-                                if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], playerView,
-                                                          [carX, carY]):
+                                if id3 < len(player.carView):
+                                    if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], playerView,
+                                                              [carX, carY]):
 
-                                    if (carY - playerView[0]) != 0:
-                                        m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (
-                                                    self.xy1_list[i + 1][0] - self.xy1_list[i][0])
-                                        b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
-                                        m2 = (carY - playerView[1]) / (carX - playerView[0])
-                                        b2 = -(m2 * playerView[0]) + playerView[1]
+                                        if (carY - playerView[0]) != 0:
+                                            m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (
+                                                        self.xy1_list[i + 1][0] - self.xy1_list[i][0])
+                                            b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
+                                            m2 = (carY - playerView[1]) / (carX - playerView[0])
+                                            b2 = -(m2 * playerView[0]) + playerView[1]
 
-                                        xi = (b2 - b1) / (m1 - m2)
-                                        yi = m2 * xi + b2
+                                            xi = (b2 - b1) / (m1 - m2)
+                                            yi = m2 * xi + b2
 
-                                        dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
-                                        pointRange.append([dis, xi, yi])
+                                            dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
+                                            pointRange.append([dis, xi, yi])
 
-                        min = -1
-                        minLen = 1920
-                        for j in range(len(pointRange)):
-                            if j == 0:
-                                minLen = pointRange[j][0]
-                                min = j
-                            else:
-                                if pointRange[j][0] < minLen:
+                            min = -1
+                            minLen = 1920
+                            for j in range(len(pointRange)):
+                                if j == 0:
                                     minLen = pointRange[j][0]
                                     min = j
+                                else:
+                                    if pointRange[j][0] < minLen:
+                                        minLen = pointRange[j][0]
+                                        min = j
 
-                        if min != -1:
-                            player.carViewHit.append([pointRange[min][1], pointRange[min][2]])
-                            helpList.append(pointRange[min][0])
-                        else:
-                            helpList.append(carViewDis)
-                        pointRange.clear()
-                playerViewLen[index] = helpList;
+                            if min != -1:
+                                player.carViewHit.append([pointRange[min][1], pointRange[min][2]])
+                                helpList.append(pointRange[min][0])
+                            else:
+                                helpList.append(carViewDis)
+                            pointRange.clear()
+                    if index < len(playerViewLen) and len(playerViewLen) > 1 :
+                        playerViewLen[index] = helpList
 
-                if player.speed > FRICTION:
-                    player.speed -= FRICTION
-                elif player.speed < -FRICTION:
-                    player.speed += FRICTION
-                else:
-                    player.speed = 0
+                    if player.speed > FRICTION:
+                        player.speed -= FRICTION
+                    elif player.speed < -FRICTION:
+                        player.speed += FRICTION
+                    else:
+                        player.speed = 0
 
-                if player.acc and not player.dec:
-                    player.speed += ACCELERATION
-                elif player.dec and not player.acc:
-                    player.speed += -DECELERATION
-                if player.lef and not player.rig:
-                    player.change_angle = 0.256 * (player.speed - 0.75) ** 3 - 1.344 * (
-                                player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728
-                elif player.rig and not player.lef:
-                    player.change_angle = -(0.256 * (player.speed - 0.75) ** 3 - 1.344 * (
-                                player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728)
+                    if player.acc and not player.dec:
+                        player.speed += ACCELERATION
+                    elif player.dec and not player.acc:
+                        player.speed += -DECELERATION
+                    if player.lef and not player.rig:
+                        player.change_angle = 0.256 * (player.speed - 0.75) ** 3 - 1.344 * (
+                                    player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728
+                    elif player.rig and not player.lef:
+                        player.change_angle = -(0.256 * (player.speed - 0.75) ** 3 - 1.344 * (
+                                    player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728)
 
-                if player.speed > MAX_SPEED:
-                    player.speed = MAX_SPEED
-                elif player.speed < -MAX_SPEED:
-                    player.speed = -MAX_SPEED
-                elif player.speed < -MIN_SPEED:
-                    player.speed = -MIN_SPEED
-                player.update()
+                    if player.speed > MAX_SPEED:
+                        player.speed = MAX_SPEED
+                    elif player.speed < -MAX_SPEED:
+                        player.speed = -MAX_SPEED
+                    elif player.speed < -MIN_SPEED:
+                        player.speed = -MIN_SPEED
+                    player.update()
 
         if (self.start):
             print(len(player_list))
@@ -439,7 +443,7 @@ def init():
 
 
 def eval_genomes(genomes, config):
-    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime
+    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit
     player_list.clear()
     """
     runs the simulation of the current population of
@@ -454,6 +458,7 @@ def eval_genomes(genomes, config):
     nets = []
     cars = list()
     ge = []
+    print(len(ge))
     for genome_id, genome in genomes:
         genome.fitness = 0  # start with fitness level of 0
         net = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -464,7 +469,7 @@ def eval_genomes(genomes, config):
     run = True
     t0 = time.time()
     c = 0
-    while not all_cars_dead:
+    while cars_alive > 0:
         if time.time()-t0 > 5:
             break
         else:
@@ -476,22 +481,20 @@ def eval_genomes(genomes, config):
 
             updatePlayerList()
 
-
-
             c+=1
             if len(player_list) > 0 and c == 20:
                 c = 0
                 #print(f"fit:{player_list[0].distance: 6.3f}   x:{player_list[0].center_x: 6.3f}   y:{player_list[0].center_y: 6.3f}   v:{player_list[0].speed: 6.3f}   ang:{player_list[0].angle: 6.3f}   w:{player_list[0].acc}   s:{player_list[0].dec}   a:{player_list[0].lef}   d:{player_list[0].rig}")
-            for i in range(len(player_list)):
+            for i, elem in enumerate(player_list):
                 x = player_list[i].distance
                 ge[i].fitness = x
-                inputList = MyGame.getViewLen(None, i)
+                inputList = MyGame.getViewLen(window, i)
                 allInputs = [inputList[0], inputList[1], inputList[2], inputList[3], inputList[4], player_list[i].speed]
                 output = nets[i].activate(allInputs)
 
 
 
-                if output[0] > 0.5:  # Gas
+                if output[0] > 0:  # Gas
                     window.acc( i,True)
                 else:
                     window.acc( i,False)
@@ -512,6 +515,7 @@ def eval_genomes(genomes, config):
                     window.rig( i, False)
 
 
+
     best = list()
 
     for id, elem in enumerate(ge):
@@ -525,10 +529,11 @@ def eval_genomes(genomes, config):
                     best[i] = hl
                     break
 
+    """
+   
     hge = []
     hnet = []
-
-
+    
 
     for i in range(keep):
         hge.append(ge[best[i][0]])
@@ -539,10 +544,14 @@ def eval_genomes(genomes, config):
 
     ge = hge
     nets = hnet
+    """
+
+    for id, elem in enumerate(ge):
+        if elem.fitness < minfit:
+            ge.pop(id)
 
     best.sort(key=lambda x: x[1])
-    for elem in ge:
-        print(elem.fitness)
+
 
     window.resetAll()
 
