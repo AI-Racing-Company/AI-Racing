@@ -194,7 +194,7 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        with open('track.csv', 'r') as f:
+        with open('track_3.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:

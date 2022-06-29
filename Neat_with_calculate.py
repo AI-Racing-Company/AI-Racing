@@ -36,7 +36,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 50
+POPULATION = 150
 keep = 5
 countTicks = 0
 maxTicks = 500
@@ -112,8 +112,6 @@ class Player():
 
     def update(self):
 
-        if self.speed < 0.1:
-            self.speed = 0.1
         angle_rad = math.radians(self.angle)
 
         self.angle += self.change_angle
@@ -128,6 +126,9 @@ class Player():
 class MyGame():
 
     def __init__(self):
+        global playerViewLen
+
+        self.playerViewLen = playerViewLen
 
         self.wallhit = None
         self.players = list()
@@ -177,11 +178,12 @@ class MyGame():
             helpList.clear()
             for j in range(carViewNum):
                 helpList.append(carViewDis)
-            playerViewLen.append(helpList)
+            self.playerViewLen.append(helpList)
 
 
     def on_update(self):
-        global cars_alive, playerViewLen, all_cars_dead, cars_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
+        global cars_alive, all_cars_dead, cars_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
+
 
         for index, player in enumerate(player_list):
             if player.isAlive:
@@ -305,8 +307,8 @@ class MyGame():
                     pointRange2.clear()
 
 
-                    if index < len(playerViewLen) and len(playerViewLen) > 1 :
-                        playerViewLen[index] = helpList
+                    if index < len(self.playerViewLen) and len(self.playerViewLen) > 1 :
+                        self.playerViewLen[index] = helpList
                         player.viewList = helpList
 
                     if player.speed > FRICTION:
@@ -353,7 +355,7 @@ class MyGame():
         player_list[id].rig = tf
 
     def getViewLen(self, i):
-        return playerViewLen[i]
+        return self.playerViewLen[i]
 
     def importTrack(self):
         print("importing")
@@ -368,7 +370,7 @@ class MyGame():
 
         data = list()
 
-        with open('track.csv', 'r') as f:
+        with open('track_3.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -472,13 +474,23 @@ def eval_genomes(genomes, config):
     c = 0
     window.resetAll()
     while True:
+
         if cars_alive > 0:
             window.on_update()
 
             updatePlayerList()
-
+            carDied = False
             for i, elem in enumerate(player_list):
                 if elem.isAlive:
+                    if(countTicks == 10 and elem.speed <= 0):
+                        cars_dead += 1
+                        if cars_dead == POPULATION:
+                            all_cars_dead = True
+                        cars_alive -= 1
+                        window.reset(i)
+                        elem.isAlive = False
+                        carDied = True
+                if not carDied:
                     inputList = elem.viewLen
 
                     allInputs = [inputList[0],inputList[1],inputList[2],inputList[3],inputList[4], elem.speed]
@@ -507,6 +519,8 @@ def eval_genomes(genomes, config):
 
             countTicks += 1
         else:
+            countTicks = 0
+            maxTicks += 10
             break
         if countTicks > maxTicks:
             countTicks = 0
@@ -530,11 +544,13 @@ def updatePlayerList():
     playerExport = list()
 
     for id, element in enumerate(player_list):
-        tmpList = list()
-        tmpList.append(element.center_x)
-        tmpList.append(element.center_y)
-        tmpList.append(element.angle)
-        playerExport.append(tmpList)
+
+        if element.isAlive:
+            tmpList = list()
+            tmpList.append(element.center_x)
+            tmpList.append(element.center_y)
+            tmpList.append(element.angle)
+            playerExport.append(tmpList)
 
     f = open('playerData.csv', "w")
     f.truncate()
