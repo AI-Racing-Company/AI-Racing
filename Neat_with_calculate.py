@@ -16,7 +16,6 @@ carViewDis = 100
 playerViewLen = list()
 playerKeyState = list()
 window = None
-minfit = 50
 
 t0 = 0
 
@@ -36,8 +35,10 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 30
+POPULATION = 50
 keep = 5
+countTicks = 0
+maxTicks = 500
 
 cars_alive = POPULATION
 all_cars_dead = False
@@ -112,22 +113,19 @@ class Player():
 
     def update(self):
 
-        if self.speed > 0 and self.lastDis == self.distance:
-            self.speed = 0
-        else:
-            self.center_x += self.change_x
-            self.center_y += self.change_y
+        self.center_x += self.change_x
+        self.center_y += self.change_y
 
-            angle_rad = math.radians(self.angle)
+        angle_rad = math.radians(self.angle)
 
-            self.angle += self.change_angle
+        self.angle += self.change_angle
 
-            self.angle = self.angle % 360
+        self.angle = self.angle % 360
 
-            self.distance += self.speed
+        self.distance += self.speed
 
-            self.center_x += -self.speed * math.sin(angle_rad)
-            self.center_y += self.speed * math.cos(angle_rad)
+        self.center_x += -self.speed * math.sin(angle_rad)
+        self.center_y += self.speed * math.cos(angle_rad)
 
 
 
@@ -253,55 +251,67 @@ class MyGame():
                         helpList = list()
 
                         for id3, playerView in enumerate(player.carView):
+                            if id3 % 2 == 1:
 
-                            for i in range(0, len(self.xy0_list) - 1, 1):
+                                for i in range(0, len(self.xy0_list) - 1, 1):
 
-                                if id3 < len(player.carView):
+                                    if id3 < len(player.carView):
 
-                                    if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i + 1], playerView,
-                                                              [carX, carY]):
-                                        if (carY - playerView[0]) != 0:
-                                            m1 = (self.xy0_list[i + 1][1] - self.xy0_list[i][1]) / (
-                                                        self.xy0_list[i + 1][0] - self.xy0_list[i][0])
-                                            b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
+                                        if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i + 1], playerView,
+                                                                  [carX, carY]):
+                                            if (carY - playerView[0]) != 0:
+                                                m1 = (self.xy0_list[i + 1][1] - self.xy0_list[i][1]) / (
+                                                            self.xy0_list[i + 1][0] - self.xy0_list[i][0])
+                                                b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
 
-                                            m2 = (carY - playerView[1]) / (carX - playerView[0])
+                                                m2 = (carY - playerView[1]) / (carX - playerView[0])
 
-                                            b2 = -(m2 * playerView[0]) + playerView[1]
+                                                b2 = -(m2 * playerView[0]) + playerView[1]
 
-                                            xi = (b2 - b1) / (m1 - m2)
-                                            yi = m2 * xi + b2
+                                                xi = (b2 - b1) / (m1 - m2)
+                                                yi = m2 * xi + b2
 
-                                            dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
-                                            pointRange.append([dis, xi, yi])
+                                                dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
+                                                pointRange.append([dis, xi, yi])
+
+                                for i in range(0, len(self.xy1_list) - 1, 1):
+
+                                    if id3 < len(player.carView):
+                                        if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], playerView,
+                                                                  [carX, carY]):
+
+                                            if (carY - playerView[0]) != 0:
+                                                m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (
+                                                            self.xy1_list[i + 1][0] - self.xy1_list[i][0])
+                                                b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
+                                                m2 = (carY - playerView[1]) / (carX - playerView[0])
+                                                b2 = -(m2 * playerView[0]) + playerView[1]
+
+                                                xi = (b2 - b1) / (m1 - m2)
+                                                yi = m2 * xi + b2
+
+                                                dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
+                                                pointRange.append([dis, xi, yi])
+
+                                min = -1
+                                minLen = 1920
+                                for j in range(len(pointRange)):
+                                    if j == 0:
+                                        minLen = pointRange[j][0]
+                                        min = j
                                     else:
-                                        pointRange2.append([carViewDis, 0, 0])
+                                        if pointRange[j][0] < minLen:
+                                            minLen = pointRange[j][0]
+                                            min = j
 
-                            for i in range(0, len(self.xy1_list) - 1, 1):
+                                if min != -1:
+                                    player.carViewHit.append([pointRange[min][1], pointRange[min][2]])
+                                    helpList.append(pointRange[min][0])
+                                else:
+                                    helpList.append(carViewDis)
+                                pointRange.clear()
+                        player.viewLen = helpList;
 
-                                if id3 < len(player.carView):
-                                    if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], playerView,
-                                                              [carX, carY]):
-
-                                        m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (
-                                                    self.xy1_list[i + 1][0] - self.xy1_list[i][0])
-                                        b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
-                                        m2 = (carY - playerView[1]) / (carX - playerView[0])
-                                        b2 = -(m2 * playerView[0]) + playerView[1]
-
-                                        xi = (b2 - b1) / (m1 - m2)
-                                        yi = m2 * xi + b2
-
-                                        dis = math.sqrt((carX - xi) ** 2 + (carY - yi) ** 2)
-                                        pointRange2.append([dis, xi, yi])
-                                    else:
-                                        pointRange2.append([carViewDis, 0, 0])
-
-                        for iden,elem in enumerate(pointRange):
-                            if elem > pointRange2[iden]:
-                                helpList.append(pointRange2[iden])
-                            else:
-                                helpList.append(pointRange[iden])
                         pointRange.clear()
                         pointRange2.clear()
 
@@ -442,7 +452,7 @@ def init():
 
 
 def eval_genomes(genomes, config):
-    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit
+    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit, countTicks
     player_list.clear()
     """
     runs the simulation of the current population of
@@ -477,35 +487,38 @@ def eval_genomes(genomes, config):
             for i, elem in enumerate(player_list):
                 if elem.isAlive:
                     inputList = elem.viewLen
-                    allInputs = list()
-                    for i in range(5):
-                        allInputs.append(inputList[i])
-                    allInputs.append(elem.speed)
+
+                    allInputs = [inputList[0],inputList[1],inputList[2],inputList[3],inputList[4], elem.speed]
                     output = nets[i].activate(allInputs)
-
-                    if output[0] > 0.5:  # Gas
-                        elem.acc = True
-                    else:
-                        elem.acc = False
-
-                    if output[1] > 0.5 and not output[0] > 0.5:  # Break
-                        elem.dec = True
-                    else:
-                        elem.dec = False
-
-                    if output[2] > 0.5:  # Left
+                    if output[0] > 0.5:  # Left
                         elem.lef = True
                     else:
                         elem.lef = False
 
-                    if output[3] > 0.5:  # Right
+                    if output[1] > 0.5:  # Right
                         elem.rig = True
                     else:
                         elem.rig = False
+
+                    if output[2] > 0.5:  # Gas
+                        elem.acc = True
+                    else:
+                        elem.acc = False
+                    if output[3] > 0.5:  # Break
+                        elem.dec = True
+                    else:
+                        elem.dec = False
+
+
                     ge[i].fitness += elem.speed
+                else:
+                    ge[i].fitness -= 0.1
+            countTicks += 1
         else:
             break
-        if time.time()-t0 > 5:
+        if countTicks > maxTicks:
+            countTicks = 0
+            maxTicks += 10
             break
     window.resetAll()
 
