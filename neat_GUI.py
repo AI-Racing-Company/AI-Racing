@@ -140,7 +140,7 @@ class MyGame(arcade.Window):
 
         arcade.start_render()
 
-        arcade.dr
+        arcade.draw_text(len(player_list), 10, 90, arcade.color.BLACK)
 
         if self.linie < 20:
             if self.click0 > 1:
