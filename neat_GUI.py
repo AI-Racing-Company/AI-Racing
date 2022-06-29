@@ -140,6 +140,8 @@ class MyGame(arcade.Window):
 
         arcade.start_render()
 
+        arcade.dr
+
         if self.linie < 20:
             if self.click0 > 1:
                 arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
@@ -154,6 +156,8 @@ class MyGame(arcade.Window):
                 arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
 
         player_list.draw()
+
+        arcade.draw_text(len(player_list), 10, 90, arcade.color.BLACK)
 
         arcade.finish_render()
 
