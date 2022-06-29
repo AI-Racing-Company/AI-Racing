@@ -452,7 +452,7 @@ def init():
 
 
 def eval_genomes(genomes, config):
-    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit, countTicks
+    global cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit, countTicks, maxTicks
     player_list.clear()
     """
     runs the simulation of the current population of
