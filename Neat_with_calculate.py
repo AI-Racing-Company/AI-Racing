@@ -40,7 +40,7 @@ RESET_Y = 150
 POPULATION = 150
 keep = 5
 countTicks = 0
-maxTicks = 500
+maxTicks = 1000
 
 cars_alive = POPULATION
 all_cars_dead = False
@@ -287,11 +287,13 @@ class MyGame():
                                                                   [carX, carY]):
 
                                             if (carY - playerView[0]) != 0:
+                                                if -0.01 < (self.xy0_list[i + 1][0] - self.xy0_list[i][0]) < 0.01:
+                                                    self.xy0_list[i][0] += 0.1
                                                 m1 = (self.xy0_list[i+1][1] - self.xy0_list[i][1]) / (self.xy0_list[i+1][0] - self.xy0_list[i][0])
 
                                                 b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
-                                                if carX - playerView[0] == 0:
-                                                    playerView[0]+= 0.1
+                                                if -0.01 < (carX - playerView[0]) < 0.01:
+                                                    playerView[0] += 0.1
                                                 m2 = (carY - playerView[1]) / (carX - playerView[0])
 
                                                 b2 = -(m2 * playerView[0]) + playerView[1]
@@ -310,11 +312,13 @@ class MyGame():
                                                                   [carX, carY]):
 
                                             if (carY - playerView[0]) != 0:
+                                                if -0.01 < (self.xy1_list[i + 1][0] - self.xy1_list[i][0]) < 0.01:
+                                                    self.xy1_list[i][0] += 0.1
                                                 m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (
                                                             self.xy1_list[i + 1][0] - self.xy1_list[i][0])
 
                                                 b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
-                                                if carX - playerView[0] == 0:
+                                                if -0.01 < (carX - playerView[0]) < 0.01:
                                                     playerView[0] += 0.1
                                                 m2 = (carY - playerView[1]) / (carX - playerView[0])
 
@@ -415,7 +419,7 @@ class MyGame():
         data = list()
         trackNow = random.randint(0,5)
         print(trackNow)
-        with open(f'track_{trackNow}.csv', 'r') as f:
+        with open(f'track_{6}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -472,7 +476,7 @@ def run(config_file):
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
-    #p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-296")
+    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-170_diffrentTrackTraining")
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()

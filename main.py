@@ -320,7 +320,7 @@ class MyGame(arcade.Window):
     def on_draw(self):
 
         arcade.start_render()
-
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
         if self.linie < 20:
             if self.click0 > 1:
                 arcade.draw_line_strip(self.xy0_list, arcade.color.BLACK, 1)
@@ -369,21 +369,7 @@ class MyGame(arcade.Window):
 
         if self.linie >= 2:
 
-            if ft:
-                for i in range(1,len(self.xy1_list)):
-                    if self.xy1_list[i-1][0] == self.xy1_list[i][0]:
-                        hy = self.xy1_list[i][1]
-                        self.xy1_list.pop(i)
-                        self.temp_list[0] = self.xy1_list[i-1][0] + 0.1
-                        self.temp_list[1] = hy
-                        self.xy1_list.append(list(self.temp_list))
-                for i in range(1,len(self.xy0_list)):
-                    if self.xy0_list[i-1][0] == self.xy0_list[i][0]:
-                        hy = self.xy0_list[i][1]
-                        self.xy0_list.pop(i)
-                        self.temp_list[0] = self.xy0_list[i-1][0] + 0.1
-                        self.temp_list[1] = hy
-                        self.xy0_list.append(list(self.temp_list))
+
 
             for index,player in enumerate(player_list):
                 carAng = player.angle
@@ -447,8 +433,14 @@ class MyGame(arcade.Window):
 
                                 if self.wallhit.intersect(self.xy0_list[i], self.xy0_list[i+1], playerView, [carX,carY]):
                                     if (carY - playerView[0]) != 0:
+                                        if -0.01 < (self.xy0_list[i+1][0] - self.xy0_list[i][0]) < 0.01:
+                                            self.xy0_list[i][0] += 0.1
+
                                         m1 = (self.xy0_list[i+1][1] - self.xy0_list[i][1]) / (self.xy0_list[i+1][0] - self.xy0_list[i][0])
                                         b1 = -(m1 * self.xy0_list[i][0]) + self.xy0_list[i][1]
+
+                                        if -0.01 < (carX - playerView[0]) < 0.01:
+                                            playerView[0] += 0.1
 
                                         m2 = (carY - playerView[1]) / (carX - playerView[0])
 
@@ -466,8 +458,14 @@ class MyGame(arcade.Window):
                                 if self.wallhit.intersect(self.xy1_list[i], self.xy1_list[i + 1], playerView,[carX,carY]):
 
                                     if (carY - playerView[0]) != 0:
+                                        if -0.01 < (self.xy1_list[i+1][0] - self.xy1_list[i][0]) < 0.01:
+                                            self.xy1_list[i][0] += 0.1
                                         m1 = (self.xy1_list[i + 1][1] - self.xy1_list[i][1]) / (self.xy1_list[i + 1][0] - self.xy1_list[i][0])
                                         b1 = -(m1 * self.xy1_list[i][0]) + self.xy1_list[i][1]
+
+                                        if -0.01 < (carX - playerView[0]) < 0.01:
+                                            playerView[0] += 0.1
+
                                         m2 = (carY - playerView[1]) / (carX - playerView[0])
                                         b2 = -(m2 * playerView[0]) + playerView[1]
 
@@ -650,11 +648,11 @@ class MyGame(arcade.Window):
         tty2 = list()
 
         for id,elem in enumerate(self.xy0_list):
-            ttx1.append(elem[0])
-            tty1.append(elem[1])
+            ttx1.append(round(elem[0]))
+            tty1.append(round(elem[1]))
         for id,elem in enumerate(self.xy1_list):
-            ttx2.append(elem[0])
-            tty2.append(elem[1])
+            ttx2.append(round(elem[0]))
+            tty2.append(round(elem[1]))
 
 
         with open('track.csv', 'w', newline='') as f:
@@ -697,15 +695,15 @@ class MyGame(arcade.Window):
         dataList11 = data[3]
 
         for id,elem in enumerate(dataList00):
-            hl = list()
-            hl.append(int(elem))
-            hl.append(int(dataList01[id]))
+            hl = [0,0]
+            hl[0] = int(float(elem))
+            hl[1] = int(dataList01[id])
             self.xy0_list.append(list(hl))
             hl.clear()
         for id,elem in enumerate(dataList10):
-            hl = list()
-            hl.append(int(elem))
-            hl.append(int(dataList11[id]))
+            hl = [0, 0]
+            hl[0] = int(float(elem))
+            hl[1] = int(dataList11[id])
             self.xy1_list.append(list(hl))
             hl.clear()
         self.linie = 2
