@@ -6,7 +6,7 @@ import time
 import pyautogui
 import numpy as np
 import random
-
+import pickle
 
 SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
 carDiag = 35.41 #len of diagonal
@@ -338,10 +338,6 @@ class MyGame():
                     player.update()
 
 
-
-
-
-
     def acc(self, id, tf):
         player_list[id].acc = tf
 
@@ -425,6 +421,8 @@ def run(config_file):
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
 
+
+
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
 
@@ -476,9 +474,11 @@ def eval_genomes(genomes, config):
     while True:
 
         if cars_alive > 0:
+            t0 = time.time_ns()
             window.on_update()
+            print(time.time_ns() - t0)
 
-            updatePlayerList()
+            #updatePlayerList()
             carDied = False
             for i, elem in enumerate(player_list):
                 if elem.isAlive:
@@ -490,6 +490,8 @@ def eval_genomes(genomes, config):
                         window.reset(i)
                         elem.isAlive = False
                         carDied = True
+                if carDied:
+                    break
                 if not carDied:
                     inputList = elem.viewLen
 
@@ -516,6 +518,10 @@ def eval_genomes(genomes, config):
 
                     ge[i].fitness -= 0.1
                     ge[i].fitness += elem.speed
+
+            if(gen%5 == 0):
+                with open(f"genum.pkl", "wb") as f:
+                    pickle.dump(ge, f)
 
             countTicks += 1
         else:
@@ -545,7 +551,7 @@ def updatePlayerList():
 
     for id, element in enumerate(player_list):
 
-        if element.isAlive:
+        if True:
             tmpList = list()
             tmpList.append(element.center_x)
             tmpList.append(element.center_y)
