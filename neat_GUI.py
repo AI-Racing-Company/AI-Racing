@@ -6,6 +6,8 @@ import time
 import pyautogui
 import csv
 import Neat_with_calculate as nwc
+import re
+import math
 
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
 # Use this variable to count merges: 1
@@ -93,6 +95,7 @@ class MyGame(arcade.Window):
         self.street_list = None
         self.wallhit = None
         self.players = list()
+        self.track = 0
 
         self.x = 0
         self.y = 0
@@ -160,8 +163,25 @@ class MyGame(arcade.Window):
         arcade.finish_render()
 
     def on_update(self, delta_time):
-        x = 1
+        global player_list
 
+        with open('playerData.csv', 'r') as f:
+            data = list()
+            player_list.clear()
+            reader = csv.reader(f)
+
+            for row in reader:
+                data.append(row)
+
+            for id, elem in enumerate(data):
+                if id == 0:
+                    if elem != self.track:
+                        self.track = 0
+                else:
+                    player_list.append(Player("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS))
+                    player_list[id-1].center_x = float(elem[0])
+                    player_list[id-1].center_y = float(elem[1])
+                    player_list[id-1].angle = float(elem[2])
 
     def importTrack(self):
         print("importing")
@@ -176,7 +196,8 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        with open('track_3.csv', 'r') as f:
+        print(self.track)
+        with open(f'track_{1}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:

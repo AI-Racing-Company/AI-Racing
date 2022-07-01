@@ -7,6 +7,7 @@ import math
 import pyautogui
 import csv
 import numpy as np
+from numpy import *
 import neat_implement
 
 
@@ -24,10 +25,11 @@ SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
 carViewNum = 5
-carViewAngle = 200
+carViewAngle = 180
 carViewDis = 500
 playerViewLen = list()
 playerKeyState = list()
+ft = True
 
 
 P1_MAX_HEALTH = 1
@@ -62,6 +64,13 @@ class testConnetc():
 
     def intersect(self, A, B, C, D):
         return self.ccw(A, C, D) != self.ccw(B, C, D) and self.ccw(A, B, C) != self.ccw(A, B, D)
+
+
+    def perp(self, a):
+        b = empty_like(a)
+        b[0] = -a[1]
+        b[1] = a[0]
+        return b
 
     def line_intersection(self, line1, line2):
         xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
@@ -215,20 +224,45 @@ class MyGame(arcade.Window):
             self.temp_list[0] = self.x
             self.temp_list[1] = self.y
             self.xy1_list.append(list(self.temp_list))
-            if self.click1 > 1:
-                kathete1 = self.xy1_list[self.click1][0]-self.xy1_list[0][0]
-                kathete2 = self.xy1_list[self.click1][1]-self.xy1_list[0][1]
-                hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
-                if hypotenuse < 50:
+
+            if self.click1 > 0:
+
+
+                kathete3 = self.xy1_list[self.click1][0] - self.xy1_list[self.click1 - 1][0]
+                kathete4 = self.xy1_list[self.click1][1] - self.xy1_list[self.click1 - 1][1]
+                hypotenuse1 = math.sqrt(kathete3 ** 2 + kathete4 ** 2)
+
+                if hypotenuse1 > 80:
+                    hi = math.ceil(hypotenuse1 / 80)
+
+                    xtemp0 = self.xy1_list[self.click1 - 1][0]
+                    ytemp0 = self.xy1_list[self.click1 - 1][1]
+                    xtemp1 = self.xy1_list[self.click1][0]
+                    ytemp1 = self.xy1_list[self.click1][1]
+                    self.xy1_list.pop(self.click1)
+                    self.click1 -= 1
+                    xdiff = (xtemp1 - xtemp0) / hi
+                    ydiff = (ytemp1 - ytemp0) / hi
+
+                    for i in range(hi):
+                        xtemp0 = xtemp0 + xdiff
+                        ytemp0 = ytemp0 + ydiff
+                        self.temp_list[0] = xtemp0
+                        self.temp_list[1] = ytemp0
+                        self.xy1_list.append(list(self.temp_list))
+                        self.click1 += 1
+
+                kathete1 = self.xy1_list[self.click1][0] - self.xy1_list[0][0]
+                kathete2 = self.xy1_list[self.click1][1] - self.xy1_list[0][1]
+                hypotenuse0 = math.sqrt(kathete1 ** 2 + kathete2 ** 2)
+
+                if hypotenuse0 < 50 and self.click1 > 1:
                     self.temp_list[0] = self.xy1_list[0][0]
                     self.temp_list[1] = self.xy1_list[0][1]
                     self.linie += 1
-                    self.start = True
-            self.xy1_list.pop(self.click1)
-            self.xy1_list.append(list(self.temp_list))
+                    self.xy1_list.append(list(self.temp_list))
+
             self.click1 += 1
-
-
 
         if self.linie == 0:
             self.x = x
@@ -236,22 +270,51 @@ class MyGame(arcade.Window):
             self.temp_list[0] = self.x
             self.temp_list[1] = self.y
             self.xy0_list.append(list(self.temp_list))
-            if self.click0 > 1:
-                kathete1 = self.xy0_list[self.click0][0]-self.xy0_list[0][0]
-                kathete2 = self.xy0_list[self.click0][1]-self.xy0_list[0][1]
-                hypotenuse = math.sqrt(kathete1**2 + kathete2**2)
-                if hypotenuse < 50:
 
+            if self.click0 > 0:
+
+                if self.x == self.xy0_list[len(self.xy0_list)-2][0]:
+                    hy = self.xy0_list[len(self.xy0_list)-1][1]
+                    self.xy0_list.pop(len(self.xy0_list) - 1)
+                    self.temp_list[0] = self.x + 10
+                    self.temp_list[1] = hy
+                    self.xy0_list.append(list(self.temp_list))
+
+                kathete3 = self.xy0_list[self.click0][0] - self.xy0_list[self.click0 - 1][0]
+                kathete4 = self.xy0_list[self.click0][1] - self.xy0_list[self.click0 - 1][1]
+                hypotenuse1 = math.sqrt(kathete3 ** 2 + kathete4 ** 2)
+
+                if hypotenuse1 > 80:
+                    hi = math.ceil(hypotenuse1 / 80)
+
+                    xtemp0 = self.xy0_list[self.click0 - 1][0]
+                    ytemp0 = self.xy0_list[self.click0 - 1][1]
+                    xtemp1 = self.xy0_list[self.click0][0]
+                    ytemp1 = self.xy0_list[self.click0][1]
+                    self.xy0_list.pop(self.click0)
+                    self.click0 -= 1
+                    xdiff = (xtemp1 - xtemp0) / hi
+                    ydiff = (ytemp1 - ytemp0) / hi
+
+                    for i in range(hi):
+                        xtemp0 = xtemp0 + xdiff
+                        ytemp0 = ytemp0 + ydiff
+                        self.temp_list[0] = xtemp0
+                        self.temp_list[1] = ytemp0
+                        self.xy0_list.append(list(self.temp_list))
+                        self.click0 += 1
+
+                kathete1 = self.xy0_list[self.click0][0] - self.xy0_list[0][0]
+                kathete2 = self.xy0_list[self.click0][1] - self.xy0_list[0][1]
+                hypotenuse0 = math.sqrt(kathete1 ** 2 + kathete2 ** 2)
+
+                if hypotenuse0 < 50 and self.click0 > 1:
                     self.temp_list[0] = self.xy0_list[0][0]
                     self.temp_list[1] = self.xy0_list[0][1]
                     self.linie += 1
-            self.xy0_list.pop(self.click0)
-            self.xy0_list.append(list(self.temp_list))
+                    self.xy0_list.append(list(self.temp_list))
+
             self.click0 += 1
-
-            
-
-
 
 
     def on_draw(self):
@@ -302,9 +365,25 @@ class MyGame(arcade.Window):
 
 
     def on_update(self, delta_time):
-        global carViewDis, playerViewLen, all_cars_dead, cars_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
+        global carViewDis, playerViewLen, all_cars_dead, cars_dead, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED, ft
 
         if self.linie >= 2:
+
+            if ft:
+                for i in range(1,len(self.xy1_list)):
+                    if self.xy1_list[i-1][0] == self.xy1_list[i][0]:
+                        hy = self.xy1_list[i][1]
+                        self.xy1_list.pop(i)
+                        self.temp_list[0] = self.xy1_list[i-1][0] + 0.1
+                        self.temp_list[1] = hy
+                        self.xy1_list.append(list(self.temp_list))
+                for i in range(1,len(self.xy0_list)):
+                    if self.xy0_list[i-1][0] == self.xy0_list[i][0]:
+                        hy = self.xy0_list[i][1]
+                        self.xy0_list.pop(i)
+                        self.temp_list[0] = self.xy0_list[i-1][0] + 0.1
+                        self.temp_list[1] = hy
+                        self.xy0_list.append(list(self.temp_list))
 
             for index,player in enumerate(player_list):
                 carAng = player.angle
@@ -341,8 +420,8 @@ class MyGame(arcade.Window):
                 player.carView.clear()
 
                 for i in range(carViewNum):
-                    alpha = carViewAngle / carViewNum
-                    alpha += alpha / carViewNum
+                    alpha = carViewAngle / (carViewNum-1)
+
                     player.carView.append(list([carX,carY]))
                     tempList = [0, 0]
                     tempList[0] = (carX + math.sin(-math.radians(carAng+alpha*i-carViewAngle/2)) * carViewDis)
@@ -380,8 +459,6 @@ class MyGame(arcade.Window):
 
                                         dis = math.sqrt((carX-xi)**2 + (carY-yi)**2)
                                         pointRange.append([dis, xi, yi])
-
-
 
                         for i in range(0, len(self.xy1_list) - 1, 1):
 
