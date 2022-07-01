@@ -129,7 +129,10 @@ class MyGame():
         return self.player_list
 
     def __init__(self):
-        global POPULATION, carDiag, carAngularAdd, carViewNum, FRICTION, ACCELERATION, DECELERATION, MAX_SPEED, MIN_SPEED
+        global playerViewLen
+
+        self.playerViewLen = playerViewLen
+
         self.wallhit = None
         self.players = list()
 
@@ -378,7 +381,7 @@ class MyGame():
 
         data = list()
 
-        with open('track.csv', 'r') as f:
+        with open('track_3.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -489,6 +492,15 @@ def eval_genomes(genomes, config):
 
             for i, elem in enumerate(window.player_list):
                 if elem.isAlive:
+                    if(countTicks == 10 and elem.speed <= 0):
+                        cars_dead += 1
+                        if cars_dead == POPULATION:
+                            all_cars_dead = True
+                        cars_alive -= 1
+                        window.reset(i)
+                        elem.isAlive = False
+                        carDied = True
+                if not carDied:
                     inputList = elem.viewLen
 
                     allInputs = [inputList[0],inputList[1],inputList[2],inputList[3],inputList[4], elem.speed]
@@ -517,6 +529,8 @@ def eval_genomes(genomes, config):
 
             countTicks += 1
         else:
+            countTicks = 0
+            maxTicks += 10
             break
         if countTicks > maxTicks:
             countTicks = 0
@@ -562,5 +576,3 @@ def updatePlayerList():
 if __name__ == "__main__":
 
     main()
-    
-    
