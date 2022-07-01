@@ -7,6 +7,9 @@ import pyautogui
 import numpy as np
 import random
 
+
+maxTicks = 3000
+
 calcTime = False  # Print deltatime of on_update
 
 SPRITE_SCALING_PLAYERS = 1  # 23 * 67 px
@@ -40,7 +43,6 @@ RESET_Y = 150
 POPULATION = 150
 keep = 5
 countTicks = 0
-maxTicks = 1000
 
 cars_alive = POPULATION
 all_cars_dead = False
@@ -185,7 +187,7 @@ class MyGame():
             self.playerViewLen.append(helpList)
 
     def on_update(self):
-        hitCalc = 1000
+        hitCalc = 170
 
         for index, player in enumerate(self.player_list):
             if player.isAlive:
@@ -419,7 +421,7 @@ class MyGame():
         data = list()
         trackNow = random.randint(0,5)
         print(trackNow)
-        with open(f'track_{6}.csv', 'r') as f:
+        with open(f'track_{2}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -476,7 +478,7 @@ def run(config_file):
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
-    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-170_diffrentTrackTraining")
+    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-220")
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -539,6 +541,12 @@ def eval_genomes(genomes, config):
             carDied = False
             for i, elem in enumerate(window.player_list):
                 if elem.isAlive:
+                    if countTicks == 20 and ge[i].fitness <= 5:
+                        window.cars_dead += 1
+                        window.all_cars_dead = window.cars_dead == POPULATION
+                        window.cars_alive -= 1
+                        elem.isAlive = False
+                        carDied = True
 
                     if carDied:
                         break
@@ -577,7 +585,7 @@ def eval_genomes(genomes, config):
             break
         if countTicks > maxTicks:
             countTicks = 0
-            maxTicks += 10 * int(gen / 5)
+            maxTicks += 50
             break
     window.importTrack()
 

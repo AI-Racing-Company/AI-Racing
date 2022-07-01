@@ -715,7 +715,7 @@ def main():
 
     window = MyGame()
     window.setup()
-    arcade.set_background_color(arcade.color.WHITE)
+    arcade.set_background_color(arcade.color.GRAY)
     arcade.run()
 
 def getPlayerList():

@@ -197,7 +197,7 @@ class MyGame(arcade.Window):
         data = list()
 
         print(self.track)
-        with open(f'track_{6}.csv', 'r') as f:
+        with open(f'track_{2}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -238,7 +238,7 @@ def update(player_listi):
 def main():
     window = MyGame()
     window.setup()
-    arcade.set_background_color(arcade.color.WHITE)
+    arcade.set_background_color(arcade.color.GRAY)
     arcade.run()
 
 
