@@ -15,8 +15,8 @@ calcTime = False  # Print deltatime of on_update
 SPRITE_SCALING_PLAYERS = 1  # 23 * 67 px
 carDiag = 35.41  # len of diagonal
 carAngularAdd = [19, 161, -161, -19]  # angles to add for calculation
-carViewNum = 5
-carViewAngle = 180
+carViewNum = 9
+carViewAngle = 360-360/9
 carViewDis = 100
 playerKeyState = list()
 window = None
@@ -242,11 +242,7 @@ class MyGame():
                 ###
 
                 if wallHit:
-                    self.cars_dead += 1
-                    self.all_cars_dead = self.cars_dead == POPULATION
-                    self.cars_alive -= 1
-                    player.isAlive = False
-                    carDied = True
+                    self.kill(index)
 
                 ###
                 ### If car did not die continue wit calculating
@@ -421,7 +417,7 @@ class MyGame():
         data = list()
         trackNow = random.randint(0,5)
         print(trackNow)
-        with open(f'track_{2}.csv', 'r') as f:
+        with open(f'track_{trackNow}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -470,6 +466,12 @@ class MyGame():
         self.player_list[pid].speed = 0
         self.player_list[pid].angle = 90
 
+    def kill(self, pid):
+        self.cars_dead += 1
+        self.all_cars_dead = self.cars_dead == POPULATION
+        self.cars_alive -= 1
+        self.player_list[pid].isAlive = False
+        carDied = True
 
 def run(config_file):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -478,7 +480,7 @@ def run(config_file):
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
-    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-220")
+    #p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-250")
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -541,19 +543,15 @@ def eval_genomes(genomes, config):
             carDied = False
             for i, elem in enumerate(window.player_list):
                 if elem.isAlive:
-                    if countTicks == 20 and ge[i].fitness <= 5:
-                        window.cars_dead += 1
-                        window.all_cars_dead = window.cars_dead == POPULATION
-                        window.cars_alive -= 1
-                        elem.isAlive = False
-                        carDied = True
+                    if countTicks == 100 and ge[i].fitness <= 10:
+                        window.kill(i)
 
                     if carDied:
                         break
                     if not carDied:
                         inputList = elem.viewLen
 
-                        allInputs = [inputList[0], inputList[1], inputList[2], inputList[3], inputList[4], elem.speed]
+                        allInputs = [inputList[0], inputList[1], inputList[2], inputList[3], inputList[4], inputList[5], inputList[6], inputList[7], inputList[8], elem.speed]
                         output = nets[i].activate(allInputs)
                         if output[0] > 0.5:  # Left
                             elem.lef = True
@@ -587,6 +585,7 @@ def eval_genomes(genomes, config):
             countTicks = 0
             maxTicks += 50
             break
+
     window.importTrack()
 
     window.resetAll()

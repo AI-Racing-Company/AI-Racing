@@ -165,6 +165,8 @@ class MyGame(arcade.Window):
     def on_update(self, delta_time):
         global player_list
 
+        self.importTrack()
+
         with open('playerData.csv', 'r') as f:
             data = list()
             player_list.clear()
@@ -184,7 +186,6 @@ class MyGame(arcade.Window):
                     player_list[id-1].angle = float(elem[2])
 
     def importTrack(self):
-        print("importing")
 
         self.xy0_list = list()
         self.xy1_list = list()
@@ -196,15 +197,12 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        print(self.track)
-        with open(f'track_{2}.csv', 'r') as f:
+        with open(f'track_{nwc.trackNow}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
                 data.append(row)
-                print(row)
 
-        print("done importing")
 
         dataList00 = data[0]
         dataList01 = data[1]

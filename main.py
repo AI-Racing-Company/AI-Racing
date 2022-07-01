@@ -24,8 +24,8 @@ DIR = path.dirname(path.abspath(__file__))
 SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
-carViewNum = 5
-carViewAngle = 180
+carViewNum = 9
+carViewAngle = 360-360/9
 carViewDis = 500
 playerViewLen = list()
 playerKeyState = list()
@@ -679,7 +679,7 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        with open('track.csv', 'r') as f:
+        with open('track_5.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
