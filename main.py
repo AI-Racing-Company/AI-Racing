@@ -15,8 +15,6 @@ import neat_implement
 # Function for Angelspeed dependend on Speed 0.256 *(x-0.75)**(3)-1.344 *(x-0.75)**(2)+1.152 *(x-0.75)+1.728
 # Use this variable to count merges: 1
 
-#TODO:
-# Nothing in particular
 
 
 DIR = path.dirname(path.abspath(__file__))
@@ -24,9 +22,9 @@ DIR = path.dirname(path.abspath(__file__))
 SPRITE_SCALING_PLAYERS = 1 #23 * 67 px
 carDiag = 35.41 #len of diagonal
 carAngularAdd = [19,161,-161,-19]# angles to add for calculation
-carViewNum = 9
-carViewAngle = 360-360/9
-carViewDis = 500
+carViewNum = 5
+carViewAngle = 180
+carViewDis = 100
 playerViewLen = list()
 playerKeyState = list()
 ft = True
@@ -48,7 +46,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 2
+POPULATION = 1
 all_cars_dead = False
 cars_dead = 0
 
@@ -65,12 +63,6 @@ class testConnetc():
     def intersect(self, A, B, C, D):
         return self.ccw(A, C, D) != self.ccw(B, C, D) and self.ccw(A, B, C) != self.ccw(A, B, D)
 
-
-    def perp(self, a):
-        b = empty_like(a)
-        b[0] = -a[1]
-        b[1] = a[0]
-        return b
 
     def line_intersection(self, line1, line2):
         xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
@@ -337,26 +329,33 @@ class MyGame(arcade.Window):
             #    arcade.draw_line(self.sectorlinecoords[i][0][0],self.sectorlinecoords[i][0][1],self.sectorlinecoords[i][1][0],self.sectorlinecoords[i][1][1], arcade.color.BLUE, 2)
 
 
+        for i in range(len(self.xy0_list)):
+            arcade.draw_point(self.xy0_list[i][0], self.xy0_list[i][1], arcade.color.BLUE, 5)
+        for i in range(len(self.xy1_list)):
+            arcade.draw_point(self.xy1_list[i][0], self.xy1_list[i][1], arcade.color.BLUE, 5)
 
 
 
-        arcade.draw_line_strip(player_list[0].carView, arcade.color.BLUE, 1)
-        #arcade.draw_line_strip(self.carLines, arcade.color.RED, 1)
+        #arcade.draw_line_strip(player_list[0].carView, arcade.color.BLUE, 1)
+        #if self.carLines:
+        #arcade.draw_line_strip(player_list[0].carLines, arcade.color.RED, 2)
 
-        for i in range(len(player_list)):
-            for j in range(len(player_list[i].carViewHit)):
-                arcade.draw_point(player_list[i].carViewHit[j][0], player_list[i].carViewHit[j][1], arcade.color.RED, 5)
+        #for i in range(len(player_list)):
+         #   for j in range(len(player_list[i].carViewHit)):
+          #      arcade.draw_point(player_list[i].carViewHit[j][0], player_list[i].carViewHit[j][1], arcade.color.RED, 5)
 
 
-        player_list.draw()
 
-        arcade.draw_text(f"Distance driven: {self.player_sprite.distance:6.4f}", 10, 90, arcade.color.BLACK)
-        arcade.draw_text(f"Angel: {self.player_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
-        arcade.draw_text(f"Speed: {self.player_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
-        arcade.draw_text(f"Angel_Speed: {self.player_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
 
-        for i in range(carViewNum):
-            arcade.draw_text(f"distance: {playerViewLen[0][i]:6.3f}", 10, 110 + i*20, arcade.color.BLACK)
+        # player_list.draw()
+
+        #arcade.draw_text(f"Distance driven: {self.player_sprite.distance:6.4f}", 10, 90, arcade.color.BLACK)
+        #arcade.draw_text(f"Angel: {self.player_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
+        #arcade.draw_text(f"Speed: {self.player_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
+        #arcade.draw_text(f"Angel_Speed: {self.player_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
+
+        #for i in range(carViewNum):
+         #   arcade.draw_text(f"distance: {playerViewLen[0][i]:6.3f}", 10, 110 + i*20, arcade.color.BLACK)
 
         arcade.finish_render()
 
@@ -595,7 +594,7 @@ class MyGame(arcade.Window):
         player_list[pid].center_x = RESET_X
         player_list[pid].center_y = RESET_Y
         player_list[pid].speed = 0
-        player_list[pid].angle = 90
+        player_list[pid].angle = 0
 
     def acc(self, id, tf):
         player_list[id].acc = tf
@@ -679,7 +678,7 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        with open('track_5.csv', 'r') as f:
+        with open('track_0_old.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:
@@ -715,7 +714,7 @@ def main():
 
     window = MyGame()
     window.setup()
-    arcade.set_background_color(arcade.color.GRAY)
+    arcade.set_background_color(arcade.color.WHITE)
     arcade.run()
 
 def getPlayerList():

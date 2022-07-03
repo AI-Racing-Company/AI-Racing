@@ -178,7 +178,7 @@ class MyGame(arcade.Window):
             for id, elem in enumerate(data):
                 if id == 0:
                     if elem != self.track:
-                        self.track = 0
+                        self.track = elem[0]
                 else:
                     player_list.append(Player("Mclaren Daniel Riccardo.png", SPRITE_SCALING_PLAYERS))
                     player_list[id-1].center_x = float(elem[0])
@@ -197,7 +197,7 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        with open(f'track_{nwc.trackNow}.csv', 'r') as f:
+        with open(f'track_{self.track}.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:

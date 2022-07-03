@@ -9,14 +9,15 @@ import random
 
 
 maxTicks = 3000
+absMaxTicks = 6000
 
 calcTime = False  # Print deltatime of on_update
 
 SPRITE_SCALING_PLAYERS = 1  # 23 * 67 px
 carDiag = 35.41  # len of diagonal
 carAngularAdd = [19, 161, -161, -19]  # angles to add for calculation
-carViewNum = 9
-carViewAngle = 360-360/9
+carViewNum = 5
+carViewAngle = 180
 carViewDis = 100
 playerKeyState = list()
 window = None
@@ -404,6 +405,52 @@ class MyGame():
 
     def importTrack(self):
         global trackNow
+        if random.randint(0,10) == 5:
+            print("importing")
+
+            self.xy0_list = list()
+            self.xy1_list = list()
+
+            dataList00 = list()
+            dataList01 = list()
+            dataList10 = list()
+            dataList11 = list()
+
+            data = list()
+            trackNow = random.randint(0,4)
+            print(trackNow)
+            with open(f'track_{trackNow}.csv', 'r') as f:
+                reader = csv.reader(f)
+
+                for row in reader:
+                    data.append(row)
+                    print(row)
+
+            print("done importing")
+
+            dataList00 = data[0]
+            dataList01 = data[1]
+            dataList10 = data[2]
+            dataList11 = data[3]
+
+            for id, elem in enumerate(dataList00):
+                hl = list()
+                hl.append(int(elem))
+                hl.append(int(dataList01[id]))
+                self.xy0_list.append(list(hl))
+                hl.clear()
+            for id, elem in enumerate(dataList10):
+                hl = list()
+                hl.append(int(elem))
+                hl.append(int(dataList11[id]))
+                self.xy1_list.append(list(hl))
+                hl.clear()
+            self.linie = 2
+            self.click0 = 100
+            self.click1 = 100
+    def initImportTrack(self):
+        global trackNow
+
         print("importing")
 
         self.xy0_list = list()
@@ -415,7 +462,7 @@ class MyGame():
         dataList11 = list()
 
         data = list()
-        trackNow = random.randint(0,5)
+        trackNow = random.randint(0,4)
         print(trackNow)
         with open(f'track_{trackNow}.csv', 'r') as f:
             reader = csv.reader(f)
@@ -480,7 +527,7 @@ def run(config_file):
 
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
-    #p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-250")
+    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-815")
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -551,7 +598,7 @@ def eval_genomes(genomes, config):
                     if not carDied:
                         inputList = elem.viewLen
 
-                        allInputs = [inputList[0], inputList[1], inputList[2], inputList[3], inputList[4], inputList[5], inputList[6], inputList[7], inputList[8], elem.speed]
+                        allInputs = [inputList[0], inputList[1], inputList[2], inputList[3], inputList[4], elem.speed]
                         output = nets[i].activate(allInputs)
                         if output[0] > 0.5:  # Left
                             elem.lef = True
@@ -579,11 +626,15 @@ def eval_genomes(genomes, config):
             countTicks += 1
         else:
             countTicks = 0
-            maxTicks += 10
+            maxTicks += 50
+            if maxTicks > absMaxTicks:
+                maxTicks = absMaxTicks
             break
         if countTicks > maxTicks:
             countTicks = 0
             maxTicks += 50
+            if maxTicks > absMaxTicks:
+                maxTicks = absMaxTicks
             break
 
     window.importTrack()
@@ -595,7 +646,7 @@ def main():
     global window
     window = MyGame()
     window.setup()
-    window.importTrack()
+    window.initImportTrack()
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
     run(config_path)
