@@ -8,14 +8,14 @@ import numpy as np
 import random
 import visualize
 
-train_AI = False
-use_Gen = True
+train_AI = True
+use_Gen = False
 Gen_File = "neat-checkpoint-815"
-numMaxGen = 1
+numMaxGen = 100
 
 random_tracks = True
 max_tracks = 4
-change_prop = 10
+change_prop = 5
 use_track = 2
 
 draw_net = False
@@ -423,7 +423,7 @@ class MyGame():
         return self.playerViewLen[i]
 
     def importTrack(self):
-        global trackNow
+        global trackNow, random_tracks, max_tracks, change_prop, use_track
         if random.randint(0,change_prop) == 1 or not self.xy0_list:
             print("importing")
 
@@ -497,6 +497,7 @@ class MyGame():
         carDied = True
 
 def run(config_file):
+    global train_AI, use_Gen, Gen_File, numMaxGen, draw_net
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
                          config_file)
@@ -546,7 +547,7 @@ def init():
 
 
 def eval_genomes(genomes, config):
-    global calcTime, cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit, countTicks, maxTicks
+    global calcTime, increaseMaxTicks, calcTime, cars_dead, all_cars_dead, window, player_list, t0, gen, cars_alive, keep, deltatime, minfit, countTicks, maxTicks
     window.player_list.clear()
 
     """
@@ -588,7 +589,7 @@ def eval_genomes(genomes, config):
             carDied = False
             for i, elem in enumerate(window.player_list):
                 if elem.isAlive:
-                    if countTicks == 100 and ge[i].fitness <= 10:
+                    if countTicks == 100 and ge[i].fitness <= 10 and train_AI:
                         window.kill(i)
 
                     if carDied:
@@ -662,9 +663,8 @@ def updatePlayerList():
             tmpList.append(element.angle)
             playerExport.append(tmpList)
 
-    f = open('playerData.csv', "w")
-    f.truncate()
-    f.close()
+    with open('playerData.csv', "w") as f:
+        f.truncate()
     with open('playerData.csv', 'w', newline='') as f:
 
         writer = csv.writer(f)
