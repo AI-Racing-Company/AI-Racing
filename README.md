@@ -31,6 +31,7 @@ To train the AI, you have some options to chose from in the Neat_with_calculate 
 - -  This variable is only used when random_tracks is False. This is the number to the track you want to be loaded.
 - #### draw_net
 - -  This variable indicates if the Net of the last generation should be drawn. When it has been drawn, it is advised to rename the file it was saved to, since it will be overwritten if you run again.
+- - NOTE: to use the visualization, you have to install [graphviz](https://graphviz.org/download/) and change the file do the bin folder in visualize.py
 - #### POPULATION
 - -  The amount of cars per generation. Has to be changed in "config-feedforward.txt" accordingly.
 - #### maxTicks
