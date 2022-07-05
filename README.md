@@ -1,5 +1,5 @@
 # AI-Racing
-This is a Project in which cars will learn to race on a Track.
+This is a Project in which cars will learn to race on a Track. It was created as a school project by me and Jibril6407.
 # Usage
 ## Create Tracks
 To create a track you have to run "main.py". This will open a window with a car drawn on it. By clicking with the left mouse button, a point for a line will be drawn. By clicking miltiple times, the track can be created. To end the track, click withhin 50 pixels of the first point.
@@ -30,19 +30,34 @@ To train the AI, you have some options to chose from in the Neat_with_calculate 
 - #### use_track
 - -  This variable is only used when random_tracks is False. This is the number to the track you want to be loaded.
 - #### draw_net
-- -  This variable indicates if the Net of the last generation should be drawn.
+- -  This variable indicates if the Net of the last generation should be drawn. When it has been drawn, it is advised to rename the file it was saved to, since it will be overwritten if you run again.
 - #### POPULATION
 - -  The amount of cars per generation. Has to be changed in "config-feedforward.txt" accordingly.
 - #### maxTicks
-- -  The amount of Ticks a generation has before being reset for next generation
+- -  The amount of Ticks a generation has before being reset for next generation.
 - #### increaseTicks
-- -  The amount of Ticks added to maxTicks per generation
+- -  The amount of Ticks added to maxTicks per generation.
 - #### absMaxTicks
 - -  The amount of Ticks at the absolute maximum, not being increased over time.
 - #### calcTime
 - -  Set this to True if you want to see the time it takes to run through on_update.
 
-After setting up all these cariables in a way you want, you can run the file.
+After setting up all these variables in a way you want, you can run the file.
+
+
 
 ## GUI
 If you want to see the cars drive, you have to run the script "neat_GUI.py" as well.
+
+# Technical Infos
+## AI
+The AI gets fed the distances to the tracks in five directions at a FOV of 180°. the Outputs are 4 values, each of which represents a boolean. If the output of the respective neuron is greater than 0.5, the output is True. These four outputs simulate the player key presses of WASD.
+
+## GUI
+Since we couldn't find a way to combine NEAT and our GUI, arcade, we had to think of another way. The script Neat_with_calculate.py writes the playerdata (x,y,rotation) into a CSV file, and neat_GUI reads this file and draws these cars. Due to this, the cars sometimes flicker.
+
+# Sources (note: these are not all of them, just the more important ones)
+- [NEAT]([https://www.google.com](https://neat-python.readthedocs.io/en/latest/))
+- [NEAT tutorial Flappy bird](bit.ly/3bO3UdO)
+- [NEAT tutorial car driving](https://www.youtube.com/watch?v=2o-jMhXmmxA&t=143s&ab_channel=CheesyAI)
+- [arcade](https://api.arcade.academy/en/latest/)
