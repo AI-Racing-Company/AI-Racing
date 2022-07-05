@@ -320,11 +320,7 @@ class MyGame(arcade.Window):
             if self.click0 >= 1:
                 arcade.draw_point(self.xy0_list[0][0], self.xy0_list[0][1], arcade.color.BLACK, 1)
 
-            if self.click1 > 1:
-                arcade.draw_line_strip(self.xy1_list, arcade.color.BLACK, 1)
 
-            if self.click1 >= 1:
-                arcade.draw_point(self.xy1_list[0][0], self.xy1_list[0][1], arcade.color.BLACK, 1)
             #for i in range(len(self.sectorlinecoords)-1):
             #    arcade.draw_line(self.sectorlinecoords[i][0][0],self.sectorlinecoords[i][0][1],self.sectorlinecoords[i][1][0],self.sectorlinecoords[i][1][1], arcade.color.BLUE, 2)
 
@@ -336,26 +332,25 @@ class MyGame(arcade.Window):
 
 
 
-        #arcade.draw_line_strip(player_list[0].carView, arcade.color.BLUE, 1)
-        #if self.carLines:
-        #arcade.draw_line_strip(player_list[0].carLines, arcade.color.RED, 2)
+        arcade.draw_line_strip(player_list[0].carView, arcade.color.RED, 1)
+        # arcade.draw_line_strip(player_list[0].carLines, arcade.color.RED, 2)
 
-        #for i in range(len(player_list)):
-         #   for j in range(len(player_list[i].carViewHit)):
-          #      arcade.draw_point(player_list[i].carViewHit[j][0], player_list[i].carViewHit[j][1], arcade.color.RED, 5)
-
+        for i in range(len(player_list)):
+            for j in range(len(player_list[i].carViewHit)):
+                arcade.draw_point(player_list[i].carViewHit[j][0], player_list[i].carViewHit[j][1], arcade.color.RED, 5)
 
 
 
-        # player_list.draw()
 
-        #arcade.draw_text(f"Distance driven: {self.player_sprite.distance:6.4f}", 10, 90, arcade.color.BLACK)
-        #arcade.draw_text(f"Angel: {self.player_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
-        #arcade.draw_text(f"Speed: {self.player_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
-        #arcade.draw_text(f"Angel_Speed: {self.player_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
+        player_list.draw()
 
-        #for i in range(carViewNum):
-         #   arcade.draw_text(f"distance: {playerViewLen[0][i]:6.3f}", 10, 110 + i*20, arcade.color.BLACK)
+        arcade.draw_text(f"Distance driven: {self.player_sprite.distance:6.4f}", 10, 90, arcade.color.BLACK)
+        arcade.draw_text(f"Angel: {self.player_sprite.angle:6.3f}", 10, 70, arcade.color.BLACK)
+        arcade.draw_text(f"Speed: {self.player_sprite.speed:6.3f}", 10, 50, arcade.color.BLACK)
+        arcade.draw_text(f"Angel_Speed: {self.player_sprite.change_angle:6.3f}", 10, 30, arcade.color.BLACK)
+
+        for i in range(carViewNum):
+            arcade.draw_text(f"distance: {playerViewLen[0][i]:6.3f}", 10, 110 + i*20, arcade.color.BLACK)
 
         arcade.finish_render()
 
@@ -502,10 +497,10 @@ class MyGame(arcade.Window):
                     player.speed = 0
 
 
-                if player.acc and not player.dec:
-                    player.speed += ACCELERATION
-                elif player.dec and not player.acc:
+                if player.dec:
                     player.speed += -DECELERATION
+                elif player.acc:
+                    player.speed += ACCELERATION
                 if player.lef and not player.rig:
                     player.change_angle = 0.256 * (player.speed - 0.75) ** 3 - 1.344 * (player.speed - 0.75) ** 2 + 1.152 * player.speed - 0.75 + 1.728
                 elif player.rig and not player.lef:
@@ -678,7 +673,7 @@ class MyGame(arcade.Window):
 
         data = list()
 
-        with open('track_0_old.csv', 'r') as f:
+        with open('track_5.csv', 'r') as f:
             reader = csv.reader(f)
 
             for row in reader:

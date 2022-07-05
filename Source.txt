@@ -1,3 +1,0 @@
-https://api.arcade.academy/en/latest/examples/sprite_move_angle.html
-https://www.youtube.com/watch?v=xVlZiRcH8qs&ab_channel=CodingWithBandE
-https://api.arcade.academy/en/latest/examples/sprite_move_keyboard_accel.html

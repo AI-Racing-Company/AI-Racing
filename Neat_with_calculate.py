@@ -6,12 +6,31 @@ import time
 import pyautogui
 import numpy as np
 import random
+import visualize
 
+train_AI = False
+use_Gen = True
+Gen_File = "neat-checkpoint-815"
+numMaxGen = 1
 
-maxTicks = 3000
+random_tracks = True
+max_tracks = 4
+change_prop = 10
+use_track = 2
+
+draw_net = False
+
+POPULATION = 150
+
+maxTicks = 1000
+increaseMaxTicks = 50
 absMaxTicks = 6000
 
 calcTime = False  # Print deltatime of on_update
+
+###
+### DON'T touch this stuff unless you know what you do
+###
 
 SPRITE_SCALING_PLAYERS = 1  # 23 * 67 px
 carDiag = 35.41  # len of diagonal
@@ -41,7 +60,7 @@ FRICTION = 0.01
 RESET_X = 500
 RESET_Y = 150
 
-POPULATION = 150
+
 keep = 5
 countTicks = 0
 
@@ -405,7 +424,7 @@ class MyGame():
 
     def importTrack(self):
         global trackNow
-        if random.randint(0,10) == 5:
+        if random.randint(0,change_prop) == 1 or not self.xy0_list:
             print("importing")
 
             self.xy0_list = list()
@@ -417,8 +436,10 @@ class MyGame():
             dataList11 = list()
 
             data = list()
-            trackNow = random.randint(0,4)
-            print(trackNow)
+            trackNow = use_track
+            if random_tracks:
+                trackNow = random.randint(0, max_tracks)
+                print(trackNow)
             with open(f'track_{trackNow}.csv', 'r') as f:
                 reader = csv.reader(f)
 
@@ -448,51 +469,6 @@ class MyGame():
             self.linie = 2
             self.click0 = 100
             self.click1 = 100
-    def initImportTrack(self):
-        global trackNow
-
-        print("importing")
-
-        self.xy0_list = list()
-        self.xy1_list = list()
-
-        dataList00 = list()
-        dataList01 = list()
-        dataList10 = list()
-        dataList11 = list()
-
-        data = list()
-        trackNow = random.randint(0,4)
-        print(trackNow)
-        with open(f'track_{trackNow}.csv', 'r') as f:
-            reader = csv.reader(f)
-
-            for row in reader:
-                data.append(row)
-                print(row)
-
-        print("done importing")
-
-        dataList00 = data[0]
-        dataList01 = data[1]
-        dataList10 = data[2]
-        dataList11 = data[3]
-
-        for id, elem in enumerate(dataList00):
-            hl = list()
-            hl.append(int(elem))
-            hl.append(int(dataList01[id]))
-            self.xy0_list.append(list(hl))
-            hl.clear()
-        for id, elem in enumerate(dataList10):
-            hl = list()
-            hl.append(int(elem))
-            hl.append(int(dataList11[id]))
-            self.xy1_list.append(list(hl))
-            hl.clear()
-        self.linie = 2
-        self.click0 = 100
-        self.click1 = 100
 
     def resetAll(self):
         global all_cars_dead, cars_dead, cars_alive, POPULATION
@@ -526,17 +502,39 @@ def run(config_file):
                          config_file)
 
     # Create the population, which is the top-level object for a NEAT run.
-    p = neat.Population(config)
-    p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-815")
-    # Add a stdout reporter to show progress in the terminal.
-    p.add_reporter(neat.StdOutReporter(True))
-    stats = neat.StatisticsReporter()
-    p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(10))
+
+    p = None
+
+    if train_AI and not use_Gen:
+        p = neat.Population(config)
+
+        # Add a stdout reporter to show progress in the terminal.
+        p.add_reporter(neat.StdOutReporter(True))
+        stats = neat.StatisticsReporter()
+        p.add_reporter(stats)
+        p.add_reporter(neat.Checkpointer(10))
 
 
 
-    winner = p.run(eval_genomes)
+    elif train_AI and use_Gen:
+        p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-815")
+
+        p.add_reporter(neat.StdOutReporter(True))
+        stats = neat.StatisticsReporter()
+        p.add_reporter(stats)
+        p.add_reporter(neat.Checkpointer(10))
+
+    elif not train_AI and use_Gen:
+        p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-815")
+
+    if p is not None:
+        winner = p.run(eval_genomes, numMaxGen)
+        if draw_net:
+            node_names = {-1: 'Line1', -2: 'Line2', -3: 'Line3', -4: 'Line4', -5: 'Line5', -6: 'Speed', 0: 'A', 1: 'D', 2: 'W', 3: 'S'}
+            visualize.draw_net(config, winner, True, node_names=node_names)
+    #visualize.draw_net(config, winner, True, prune_unused=True)
+    #visualize.plot_stats(stats, ylog=False, view=True)
+    #visualize.plot_species(stats, view=True)
 
     print('\nBest genome:\n{!s}'.format(winner))
 
@@ -626,7 +624,7 @@ def eval_genomes(genomes, config):
             countTicks += 1
         else:
             countTicks = 0
-            maxTicks += 50
+            maxTicks += increaseMaxTicks
             if maxTicks > absMaxTicks:
                 maxTicks = absMaxTicks
             break
@@ -637,7 +635,8 @@ def eval_genomes(genomes, config):
                 maxTicks = absMaxTicks
             break
 
-    window.importTrack()
+    if random_tracks:
+        window.importTrack()
 
     window.resetAll()
 
@@ -646,7 +645,7 @@ def main():
     global window
     window = MyGame()
     window.setup()
-    window.initImportTrack()
+    window.importTrack()
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
     run(config_path)
