@@ -13,35 +13,35 @@ In this file, there are no key inputs. To chose which track should be imported, 
 ## AI
 ### Training
 To train the AI, you have some options to chose from in the Neat_with_calculate file. These are variables you can change after the inputs.
-- #### train_AI
-- -  If you want the AI to learn, you have to set this variable to True. If you just want to replay a generation from a checkpoint, set it to False.
-- #### use_Gen
-- -  If you either want to continue training a checkpoint you already have, or you want to replay a specific generation, set this to True. Else, set it to False.
-- #### Gen_file
-- -  This variable is only important, if use_Gen is True. This is the string to the file of the NEAT-Checkpoint.
-- #### numMaxGen
-- - This variable is used to set the max amount of generations. For training, this should be set as high as possible. For printing the net, it is advised to set it to 1.
-- #### random_tracks
-- -  If you want the AI to drive on a random Map, set this to True. If you want it to drive on a specific track, set it to False.
-- #### max_tracks
-- -  If random_tracks is True, this variable is used for tha maximum number of Tracks
-- #### change_prop
-- -  If random_tracks is True, this variable is the possibility (1/x) of a new track after each generation.
-- #### use_track
-- -  This variable is only used when random_tracks is False. This is the number to the track you want to be loaded.
-- #### draw_net
-- -  This variable indicates if the Net of the last generation should be drawn. When it has been drawn, it is advised to rename the file it was saved to, since it will be overwritten if you run again.
-- - NOTE: to use the visualization, you have to install [graphviz](https://graphviz.org/download/) and change the file do the bin folder in visualize.py
-- #### POPULATION
-- -  The amount of cars per generation. Has to be changed in "config-feedforward.txt" accordingly.
-- #### maxTicks
-- -  The amount of Ticks a generation has before being reset for next generation.
-- #### increaseTicks
-- -  The amount of Ticks added to maxTicks per generation.
-- #### absMaxTicks
-- -  The amount of Ticks at the absolute maximum, not being increased over time.
-- #### calcTime
-- -  Set this to True if you want to see the time it takes to run through on_update.
+> #### train_AI
+> -  If you want the AI to learn, you have to set this variable to True. If you just want to replay a generation from a checkpoint, set it to False.
+> #### use_Gen
+> -  If you either want to continue training a checkpoint you already have, or you want to replay a specific generation, set this to True. Else, set it to False.
+> #### Gen_file
+> -  This variable is only important, if use_Gen is True. This is the string to the file of the NEAT-Checkpoint.
+> #### numMaxGen
+> - This variable is used to set the max amount of generations. For training, this should be set as high as possible. For printing the net, it is advised to set it to 1.
+> #### random_tracks
+> -  If you want the AI to drive on a random Map, set this to True. If you want it to drive on a specific track, set it to False.
+> #### max_tracks
+> -  If random_tracks is True, this variable is used for tha maximum number of Tracks
+> #### change_prop
+> -  If random_tracks is True, this variable is the possibility (1/x) of a new track after each generation.
+> #### use_track
+> -  This variable is only used when random_tracks is False. This is the number to the track you want to be loaded.
+> #### draw_net
+> -  This variable indicates if the Net of the last generation should be drawn. When it has been drawn, it is advised to rename the file it was saved to, since it will be overwritten if you run again.
+> - NOTE: to use the visualization, you have to install [graphviz](https://graphviz.org/download/) and change the file do the bin folder in visualize.py
+> #### POPULATION
+> -  The amount of cars per generation. Has to be changed in "config-feedforward.txt" accordingly.
+> #### maxTicks
+> -  The amount of Ticks a generation has before being reset for next generation.
+> #### increaseTicks
+> -  The amount of Ticks added to maxTicks per generation.
+> #### absMaxTicks
+> -  The amount of Ticks at the absolute maximum, not being increased over time.
+> #### calcTime
+> -  Set this to True if you want to see the time it takes to run through on_update.
 
 After setting up all these variables in a way you want, you can run the file.
 
